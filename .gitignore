@@ -2,3 +2,4 @@ app/config.local.php
 public/assets/uploads/
 .DS_Store
 .local/
+database/import.sql

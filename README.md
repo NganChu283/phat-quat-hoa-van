@@ -29,6 +29,8 @@ Website: http://127.0.0.1:8000. Quản trị: http://127.0.0.1:8000/admin/login.
 
 ## Cấu trúc đã gộp
 
+File `database/import.sql` là bản xuất đầy đủ cấu trúc và dữ liệu tại thời điểm tạo file. Để chuyển lên hosting: tạo một database trống, chọn database đó trong phpMyAdmin, mở **Import**, chọn `import.sql` rồi thực hiện. Không import thêm `schema.sql` hoặc `seed.sql` sau đó. Bản xuất giữ tài khoản hiện tại với mật khẩu đã băm, sự kiện, bài viết và các nội dung đang có; không chứa thông tin kết nối MySQL. Sau khi import, cập nhật thông tin kết nối trong `app/config.local.php`. Không upload file SQL vào `htdocs`; file được bỏ qua trong Git vì chứa dữ liệu riêng. Nếu có thay đổi nội dung sau thời điểm xuất, cần xuất lại database để lấy dữ liệu mới nhất.
+
 ```text
 app/
   bootstrap.php       Cấu hình, PDO, phiên, đăng nhập, CSRF, ảnh/upload, chống spam
