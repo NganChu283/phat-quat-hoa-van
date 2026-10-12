@@ -1,11 +1,5 @@
 <?php
 require __DIR__ . '/../app/bootstrap.php';
-
-
-
-
-
-
 $project = null; $events=[];
 try { $events=published_events(); $project=featured_event($events); }
 catch (PDOException $ex) { /* Chưa cài bảng dự án: hiển thị phần đầu với lịch chưa thiết lập. */ }

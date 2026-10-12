@@ -1,11 +1,5 @@
 <?php
 require __DIR__.'/../../app/bootstrap.php';
-
-
-
-
-
-
 admin_required();
 $mode=in_array($_GET['mode'] ?? '',['articles','intro','sections','edit'],true)?$_GET['mode']:'articles'; $articles=[]; $articleTotal=0; $articlePage=max(1,min(100000,(int)($_GET['page'] ?? 1))); $articleOffset=($articlePage-1)*25; $edit=null; $ready=true; $rows=[]; $story=default_story_settings(); $introRows=[]; $introFormVisible=false;
 if ($_SERVER['REQUEST_METHOD']==='POST') {

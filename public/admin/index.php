@@ -1,9 +1,5 @@
 <?php
 require __DIR__ . '/../../app/bootstrap.php';
-
-
-
-
 admin_required();
 $tabs=admin_tabs();
 if (($_GET['tab'] ?? '')==='posts' && $_SERVER['REQUEST_METHOD']!=='POST') {

@@ -1,131 +1,137 @@
-# Phất Quạt Họa Văn
+# Phất Quạt Họa Văn / Xòe
 
-Website PHP 8.0+ / HTML / CSS / JavaScript / MySQL 8+ (hoặc MariaDB 10.4+), không cần Composer hay Node.js.
+Website PHP 8+ và MySQL/MariaDB, chạy với XAMPP hoặc hosting PHP. Không cần Composer hay Node.js để chạy website.
 
-Thiết kế và nội dung tham khảo: https://phatquathoavan.my.canva.site
-Giữ nội dung dự án từ trang mẫu; phần đầu theo ảnh tham chiếu mới với header sáng, logo gốc, nền đỏ, tre hai bên, quạt vàng và đồng hồ đặt trên quạt. Navbar gồm Dự án, Thư viện, Blog và Liên hệ; phần câu chuyện Chàng Sơn vẫn nằm trong nội dung. Các phần phía dưới dùng nền giấy vàng ấm xen kẽ nền đỏ; bố cục responsive. Chưa đối chiếu trực quan bằng trình duyệt.
+## Chạy trên máy
 
-## Chức năng
+1. Bật MySQL trong XAMPP.
+2. Giữ cấu hình riêng trong `app/config.local.php`; máy mới sao chép từ `app/config.example.php` và điền thông tin MySQL.
+3. Cài mới: nhập `database/schema.sql`, rồi `database/seed.sql` **một lần**. Database đã có: không nhập lại seed.
+4. Chạy migration từ thư mục dự án:
 
-- Giới thiệu dự án, câu chuyện Chàng Sơn, quy trình làm quạt, các đơn vị đồng hành.
-- Thư viện ảnh: lọc nhóm, xem ảnh lớn; tải lên/sửa/xóa ảnh từ quản trị.
-- Blog: tạo/sửa/xóa, lưu nháp, xuất bản; trang đọc bài viết riêng.
-- Đăng ký tham gia: lưu họ tên, email, điện thoại, hoạt động và lời nhắn vào MySQL.
-- Liên hệ: lưu lời nhắn vào MySQL; xem và xóa trong quản trị.
-- Quản trị: đăng nhập từ bảng users, quản lý tài khoản, sự kiện và nội dung; bài viết có thanh công cụ định dạng bám khi cuộn.
-- Dự án: thêm/sửa/xóa tên, phụ đề và ngày giờ bắt đầu; chọn một dự án hiển thị trên trang chủ; đồng hồ đếm ngược cập nhật mỗi giây theo giờ Việt Nam (UTC+7), dừng ở 0 khi đến giờ.
-
-## Thiết lập đồng hồ dự án
-
-1. Đăng nhập quản trị và mở **Dự án**: http://localhost:8000/admin/projects.php.
-2. Nhập tên dự án (hiển thị trên quạt), phụ đề và ngày giờ bắt đầu **theo giờ Việt Nam**.
-3. Chọn **Hiển thị trên trang chủ và chạy đồng hồ đếm ngược**, rồi lưu.
-4. Tải lại trang chủ để lấy lịch mới. Một dự án được hiển thị tại một thời điểm; chọn dự án mới sẽ thay dự án cũ. Bỏ chọn khi sửa để ngừng hiển thị.
-
-Khi chưa có dự án được chọn, đồng hồ hiển thị dấu gạch và thông báo lịch sẽ cập nhật. Khi đến giờ, đồng hồ giữ 00 và hiển thị “Dự án đã đến giờ bắt đầu”. Không tự chuyển sang dự án khác hay tự thêm ngày giờ minh họa.
-
-Database cài mới dùng schema.sql đã bao gồm bảng projects. Với database từ bản cũ, nhập **database/projects.sql** vào database đang dùng một lần (có thể chạy lại, không mất dữ liệu). Máy này đã được bổ sung bảng.
-
-Biểu mẫu lưu vào cơ sở dữ liệu và hàng đợi email xác nhận/thông báo cho ban tổ chức. Cấu hình SMTP và tác vụ gửi thư theo [FEATURES.md](FEATURES.md) để gửi email thực tế. Thời gian và chỗ tham gia do ban tổ chức xác nhận; nội dung mẫu chưa có lịch đang mở được xác minh. Hai lựa chọn hoạt động trong biểu mẫu có thể sửa đồng thời tại public/index.php và public/submit.php.
-
-## Cài đặt với XAMPP
-
-1. Cài XAMPP có PHP >= 8.0 và bật Apache, MySQL. Cần extension pdo_mysql, mbstring, fileinfo (thường có sẵn).
-2. Chép thư mục này vào `htdocs/phat-quat-hoa-van`.
-3. Mở phpMyAdmin, nhập `database/schema.sql`, sau đó nhập `database/seed.sql` **một lần** để có bài viết và ảnh ban đầu. Nhập seed lại sẽ tạo bản ghi trùng.
-4. Sao chép `app/config.example.php` thành `app/config.local.php`, điền host, port, tên database, tài khoản và mật khẩu MySQL.
-5. Tạo mật khẩu quản trị bằng lệnh PHP dưới đây và chép chuỗi kết quả vào `admin_password_hash` trong cấu hình. Có thể đổi `admin_username`.
-
-```sh
-php -r 'echo password_hash("thay-bang-mat-khau-rieng", PASSWORD_DEFAULT), PHP_EOL;'
+```powershell
+C:/xampp/php/php.exe app/migrate.php
 ```
 
-Nếu PHP chưa nằm trong PATH, dùng đường dẫn PHP của XAMPP, ví dụ macOS: `/Applications/XAMPP/xamppfiles/bin/php`.
+5. Windows: chạy `./start.ps1`. Nếu PowerShell chặn script, dùng lệnh PHP trực tiếp:
 
-6. Mở `http://localhost/phat-quat-hoa-van/public/`.
-7. Quản trị: `http://localhost/phat-quat-hoa-van/public/admin/login.php`.
-
-Không có mật khẩu quản trị mặc định: đăng nhập chỉ được bật khi đã cấu hình hash mật khẩu.
-
-## Chạy bằng PHP development server
-
-Sau khi nhập schema/seed và cấu hình kết nối MySQL, chạy từ thư mục dự án:
-
-```sh
-php -S 127.0.0.1:8000 -t public
+```powershell
+C:/xampp/php/php.exe -d session.save_path=C:/xampp/htdocs/phat-quat-hoa-van/.local/sessions -d extension=gd -S 127.0.0.1:8000 -t public app/router.php
 ```
 
-Truy cập `http://127.0.0.1:8000`. Server này dành cho phát triển tại máy cá nhân.
+Tạo `.local/sessions` nếu chưa có. `start.ps1` tự tạo thư mục này và bật GD khi có DLL. Trên macOS/XAMPP dùng `./start.command`; có thể đổi đường dẫn PHP trong script theo máy. Hoặc dùng PHP trong PATH:
 
-## Đưa lên hosting PHP/MySQL
+```sh
+php -S 127.0.0.1:8000 -t public app/router.php
+```
 
-- Đặt document root vào thư mục `public/`. Giữ `app/`, `database/` ngoài vùng public.
-- Với shared hosting, đưa **nội dung** `public/` vào `public_html/`, đặt `app/` ở thư mục anh em bên ngoài public_html. Các đường dẫn `../app` vẫn khớp.
-- Nếu provider cấp sẵn tên database, bỏ hai câu `CREATE DATABASE` / `USE` trong schema và chọn database đã cấp trước khi import. Làm tương tự với `USE` trong seed.
-- Điền thông tin MySQL của hosting trong `app/config.local.php`. Dùng HTTPS.
-- PHP cần ghi được vào `public/assets/uploads/`; tạo thư mục này nếu hosting không cho tạo tự động. Không dùng quyền 777.
-- Đặt timezone PHP thành `Asia/Ho_Chi_Minh`; mã nguồn đã đặt múi giờ PHP và phiên kết nối MySQL về UTC+7.
-- Google Fonts cần kết nối internet; nếu không có, giao diện dùng font hệ thống.
+Website: http://127.0.0.1:8000. Quản trị: http://127.0.0.1:8000/admin/login.php. Nhấn Ctrl+C để dừng server.
 
-Hosting Sites chạy Workers, không thực thi trực tiếp PHP/MySQL. Bản này được bàn giao để dùng với hosting PHP/MySQL.
-
-## Cấu trúc
+## Cấu trúc đã gộp
 
 ```text
 app/
-  bootstrap.php           Phiên đăng nhập, PDO, CSRF, tiện ích
-  config.example.php      Mẫu cấu hình; sao chép thành config.local.php
-  layout.php              Header/footer công khai dùng chung và đường dẫn theo thư mục cài đặt
-  upload.php              Kiểm tra và lưu ảnh
-public/
-  index.php               Trang giới thiệu và các biểu mẫu
-  post.php                Trang đọc bài viết
-  submit.php              Xử lý đăng ký/liên hệ
-  admin/                  Đăng nhập và quản lý nội dung
-  assets/                 CSS, JS và ảnh
-  assets/uploads/         Ảnh tải lên (tạo khi cần)
+  bootstrap.php       Cấu hình, PDO, phiên, đăng nhập, CSRF, ảnh/upload, chống spam
+  content.php         Sự kiện, câu chuyện, bài viết, HTML an toàn, bộ ảnh mặc định
+  views.php           Header/footer, SEO, menu quản trị và các giao diện dùng chung
+  mail.php            SMTP và hàng đợi email
+  migrate.php         Migration database; --photos nhập bổ sung bộ ảnh mẫu
+  send-mail.php       Tác vụ gửi thư qua CLI
+  router.php          Tương thích URL tài nguyên cũ cho PHP development server
+  config.example.php  Cấu hình mẫu
+  config.local.php    Cấu hình riêng của máy, không đưa vào Git
 database/
-  schema.sql              Bảng MySQL
-  seed.sql                Nội dung ban đầu từ mẫu
-  projects.sql            Bổ sung bảng dự án cho bản cũ
+  schema.sql          Toàn bộ cấu trúc bảng
+  seed.sql            Nội dung ban đầu, chỉ nhập một lần
+public/
+  index.php           Trang chủ
+  posts.php, post.php  Danh sách bài viết và trang đọc bài
+  faq.php, partners.php
+  submit.php, calendar.php, sitemap.php, robots.txt
+  admin/              Đăng nhập, sự kiện, nội dung, tài khoản, CSV
+  assets/
+    style.css         CSS của website và quản trị
+    app.js            Menu, thư viện ảnh, đồng hồ, soạn thảo
+    ảnh + WebP        Ảnh gốc và các kích thước đáp ứng
+    uploads/          Tự tạo khi tải ảnh lên
+.local/
+  admin-access.txt                  Thông tin đăng nhập trên máy này
+  sessions/                         Phiên làm việc, không xóa khi đang dùng
+  project-before-consolidation.zip   Mã nguồn và database trước khi gộp
+  history.zip                       Tài liệu thử, ảnh xem trước và công cụ cục bộ cũ
+  verify-project.php                Kiểm tra tính toàn vẹn và các chức năng chính
 ```
 
-Ảnh `village.jpg` và họa tiết tre `fan.png` lấy từ tài nguyên công khai của trang tham chiếu; giữ ảnh có watermark như bản gốc. Thay bằng ảnh thuộc quyền sử dụng của dự án khi cần. Nguồn ảnh:
-- https://phatquathoavan.my.canva.site/_assets/media/2a325885b6013663ec5e5373d4d2712e.jpg
-- https://phatquathoavan.my.canva.site/_assets/media/e2762ddbbf5c2f8305f87d5f5170200a.png
+`app`, `database` và `public` vẫn tách biệt để bảo vệ cấu hình và dữ liệu. `.git` được giữ nguyên. Ảnh được đưa từ `assets/photos/` vào `assets/`, giữ nguyên nội dung file và các kích thước đáp ứng. Đường dẫn ảnh trong database đã được cập nhật; URL ảnh cũ, `admin.css`, `editor.js` vẫn hoạt động qua alias Apache và `app/router.php`. URL `admin/projects.php` vẫn mở quản lý sự kiện. Các helper/giao diện nhỏ đã gộp vào ba file PHP chung; SQL bổ sung đã gộp vào schema, CSS/JS vào một file mỗi loại. Toàn bộ hướng dẫn hiện ở README này.
 
-## Kiểm thử nghiệm thu
+## Quản trị
 
-1. Mở trang trên máy tính/điện thoại, kiểm tra menu, liên kết mục, lọc ảnh và đóng ảnh lớn bằng Escape.
-2. Gửi đăng ký hợp lệ và lời nhắn; kiểm tra xuất hiện trong quản trị. Dữ liệu sai phải bị từ chối; gửi tiếp trong 30 giây phải bị giới hạn.
-3. Đăng nhập đúng/sai, đăng xuất; URL quản trị phải yêu cầu đăng nhập khi chưa xác thực.
-4. Tạo bài nháp: không được hiển thị công khai. Xuất bản, mở trang bài viết, sửa và xóa.
-5. Thêm/sửa ảnh và nhóm; kiểm tra thư viện cập nhật. File ngoài JPG/PNG/WebP hoặc lớn hơn 3 MB phải bị từ chối.
-6. Nội dung có thẻ HTML phải hiển thị như văn bản, không thực thi. Các thao tác POST cần CSRF.
-7. Thêm dự án có lịch tương lai, bật hiển thị, kiểm tra đồng hồ; sửa lịch và tải lại trang chủ. Ngày không hợp lệ bị từ chối; lịch đã qua hiển thị 00 và trạng thái đã đến giờ. Xóa dự án để đưa trang chủ về trạng thái chưa có lịch.
+- **Sự kiện:** thêm/sửa/xóa tên, phụ đề, mô tả, thời gian UTC+7, địa điểm, địa chỉ, lịch hoạt động. Chọn xuất bản và sự kiện nổi bật; trang chủ dùng cùng database. Có thể để trống lịch chưa chốt. Sự kiện đã xuất bản khác hiển thị trong mục Dự án; bản nháp được ẩn. Dải lịch và bộ đếm ở ngay dưới phần đầu. Tệp `.ics` tải từ `calendar.php` khi lịch/địa điểm đã đầy đủ.
+- **Câu chuyện & bài viết:** dùng một danh sách và một bộ soạn bài. Thêm/sửa/xóa, lưu nháp, xuất bản và chọn hiển thị trong Câu chuyện. Trang chủ hiển thị tối đa 6 bài được chọn đã xuất bản. Thanh công cụ bám khi cuộn có in đậm/nghiêng/gạch chân, H2/H3, danh sách, trích dẫn, liên kết, hoàn tác. Nội dung được lọc HTML tại máy chủ; bài cũ dạng văn bản vẫn đọc được.
+- **Giới thiệu trên trang chủ:** thêm/sửa/xóa từng khối, chỉnh ảnh/tiêu đề/chú thích, ẩn/hiện và thứ tự. Khối đã xóa không tự khôi phục. **Nội dung mở rộng** quản lý các mục mở như Lịch sử hình thành; hỗ trợ định dạng, ẩn/hiện và thứ tự.
+- **Ảnh dự án:** tải ảnh, sửa tiêu đề/nhóm và xóa mục. Bộ lọc và xem ảnh lớn được tích hợp trong Dự án.
+- **Tài khoản:** bảng `users` lưu hash mật khẩu, quyền admin/editor và trạng thái. Quản trị viên thêm/sửa/đổi mật khẩu/khóa tài khoản. Thay mật khẩu, quyền hoặc trạng thái thu hồi phiên cũ. Không thể khóa/hạ quyền quản trị viên hoạt động cuối cùng. Mật khẩu mới ít nhất 12 ký tự, tối đa 72 byte. Migration nhập tài khoản cấu hình ban đầu một lần; sau đó đăng nhập dùng database.
+- **Đăng ký & liên hệ:** xem dữ liệu, phân trang; xuất CSV UTF-8 có BOM, chống công thức Excel, yêu cầu đăng nhập/CSRF. Xóa bản ghi trong admin không tự xóa ảnh gốc.
 
-Đã chạy trên XAMPP PHP 8.0.28 và MariaDB 10.4.28: toàn bộ file PHP qua kiểm tra cú pháp; trang chủ và bài blog trả HTTP 200; khu vực quản trị chuyển sang trang đăng nhập khi chưa xác thực; đăng nhập đúng vào được tổng quan và đọc dữ liệu MySQL. Chưa kiểm tra giao diện bằng trình duyệt điều khiển hoặc toàn bộ luồng tải ảnh/CRUD/biểu mẫu. Giới hạn đăng nhập hiện áp dụng theo phiên; khi triển khai công khai có thể cấu hình thêm giới hạn ở máy chủ/proxy. Xóa mục trong quản trị không tự xóa file ảnh để tránh làm mất ảnh đang dùng ở bài khác.
+Nếu cần nhập bổ sung bộ ảnh mẫu cho database cũ:
 
-Phần dự án đã kiểm thử thêm/sửa/xóa qua HTTP và MySQL, từ chối ngày 30/02, xuất lịch đúng UTC+7 và trạng thái khi hết giờ. JavaScript đã được kiểm tra tính ngày/giờ/phút/giây, cập nhật mỗi giây, lệch giờ máy người dùng và chặn số âm. Dữ liệu dự án dùng để kiểm thử đã xóa.
+```sh
+php app/migrate.php --photos
+```
 
-Tài nguyên trang mẫu bổ sung: `hero-fan.png` (quạt vàng), `logo.png`, `hero-scroll.png` (dải lụa vàng), `hero-hills.png` (họa tiết nền); `nav-fan.svg` được dựng bằng SVG để làm biểu tượng điều hướng.
+Không chạy `--photos` để khôi phục các mục ảnh bạn chủ động xóa. Migration thường không nhập lại ảnh hoặc các nội dung đã xóa.
 
-## Môi trường đã chạy trên máy này
+## Email
 
-- Website: http://localhost:8000
-- Quản trị: http://localhost:8000/admin/login.php
-- Tài khoản quản trị được lưu tại `.local/admin-access.txt` (chỉ ở máy này, không đưa vào bản ZIP).
-- MySQL dùng dịch vụ đang chạy của XAMPP; không cần nhập lại seed.
-- Để chạy lại sau khi đóng phiên server, bật MySQL trong XAMPP rồi chạy `./start.command`.
+Đăng ký và email xác nhận/thông báo được lưu cùng transaction. Email xác nhận đã nhận yêu cầu; ban tổ chức xác nhận lịch và chỗ riêng. Điền các khóa trong `app/config.local.php`:
 
-## Cập nhật chức năng
+```php
+'site_url' => 'https://ten-mien-cua-ban.example',
+'organizer_email' => 'email-ban-to-chuc@example.com',
+'mail_from' => 'email-gui@example.com',
+'smtp_host' => 'smtp.example.com',
+'smtp_port' => 587,
+'smtp_security' => 'tls',
+'smtp_username' => 'email-gui@example.com',
+'smtp_password' => 'mat-khau-ung-dung',
+```
 
-Xem [FEATURES.md](FEATURES.md) để cấu hình email, xuất CSV, địa điểm/bản đồ/lịch, SEO, ảnh WebP, chống spam và các trang bài viết/FAQ/đối tác. Trên Windows, bật MySQL rồi chạy `./start.ps1`.
+Dùng `tls` cho STARTTLS, thường cổng 587; `ssl` cho TLS ngay khi kết nối, thường cổng 465. Cần OpenSSL và chứng chỉ CA hợp lệ. Cấu hình cron/Task Scheduler mỗi phút:
 
-## Cập nhật quản trị và tài khoản
+```powershell
+C:/xampp/php/php.exe C:/xampp/htdocs/phat-quat-hoa-van/app/send-mail.php
+```
 
-Sau khi cập nhật mã nguồn hoặc cài database mới, cấu hình thông tin MySQL và hash quản trị ban đầu rồi chạy `php app/migrate.php`. Xem [FEATURES.md](FEATURES.md) để biết chi tiết. Đăng nhập sau migration dùng bảng `users`; tài khoản quản trị hiện có giữ cùng mật khẩu. Quản lý sự kiện tại `/admin/events.php`, tài khoản tại `/admin/users.php`. Mật khẩu thực tế chỉ nằm trong file cấu hình cục bộ/hash database, không ghi vào README.
+Worker xử lý tối đa 20 email/lần, có khóa chống chạy trùng và thử tối đa 5 lần. Admin hiển thị trạng thái/lỗi và nút thử lại. Chưa cấu hình SMTP thì thư nằm trong hàng đợi. Tác vụ kiểm tra không gửi email thực tế.
 
-Quản lý phần Câu chuyện trang chủ tại `/admin/stories.php`. Ở Bài viết, chọn “Hiển thị trong mục Câu chuyện trên trang chủ” để giới thiệu bài đã xuất bản trong phần này. Xem [FEATURES.md](FEATURES.md) để cập nhật database và sử dụng.
+## Hosting, SEO và ảnh
 
-**Quản lý nội dung hiện tại:** Câu chuyện và Bài viết đã gộp vào một mục **Câu chuyện & bài viết** tại `/admin/stories.php`. Dùng cùng danh sách, bộ soạn thảo và các thao tác thêm/sửa/xóa; lựa chọn hiển thị trang chủ nằm trong từng bài.
+Đặt document root vào `public/`, giữ `app/` và `database/` ngoài vùng public. Với shared hosting có thể đưa nội dung public vào `public_html/` và app ở thư mục anh em. Cấu hình HTTPS, PDO MySQL, mbstring, DOM, fileinfo; GD để tạo ảnh WebP từ upload. Cấp quyền ghi phù hợp cho `assets/uploads`, không dùng 777. Trên hosting có tên database riêng, bỏ dòng CREATE DATABASE/USE khi nhập schema/seed. Apache dùng các `.htaccess` để chặn thư mục riêng, script trong assets và tạo alias đường dẫn cũ.
+
+Điền `site_url` bằng URL công khai (gồm đường dẫn con nếu có) để canonical/Open Graph đúng. `sitemap.php` sinh trang công khai và bài đã xuất bản; thêm URL đầy đủ vào robots.txt ở gốc tên miền. Có Event/BlogPosting JSON-LD. Google Fonts cần mạng; giao diện có font thay thế.
+
+Ảnh gốc và WebP 480/960/1600px được giữ, có srcset, kích thước cố định, lazy loading; quạt đầu trang ưu tiên tải. Upload tối đa 3 MB, 8000px và 16 megapixel. Logo dùng ảnh Xòe do người dùng cung cấp. Bộ ảnh dự án lấy từ ZIP người dùng cung cấp; tài nguyên Canva cũ được giữ nguyên. Nguồn tham khảo ban đầu: https://phatquathoavan.my.canva.site.
+
+## Chống spam và kiểm tra
+
+Biểu mẫu có CSRF, honeypot, token dùng một lần 2 giờ, chờ tối thiểu 3 giây, giới hạn theo phiên 30 giây và theo IP 5 lần/10 phút trong MySQL. IP lấy từ kết nối trực tiếp; reverse proxy cần cấu hình tin cậy tại máy chủ.
+
+Kiểm tra sau khi bật MySQL:
+
+```powershell
+C:/xampp/php/php.exe .local/verify-project.php
+```
+
+Khi server localhost:8000 đang chạy, có thể kiểm tra thêm các chức năng bằng dữ liệu tạm được dọn sau khi chạy:
+
+```powershell
+C:/xampp/php/php.exe .local/verify-project.php --exercise
+```
+
+Đã kiểm tra cú pháp PHP, tất cả ảnh/cấu hình bằng SHA-256 và dữ liệu của 11 bảng so với bản trước khi gộp (chỉ đổi đường dẫn ảnh). Kiểm tra HTTP: các trang công khai, quyền/CSRF, nội dung và giới thiệu, sự kiện và lịch UTC, tài khoản, CSV, tải ảnh/WebP và hàng đợi thư. Chrome 1440px/390px: thêm/sửa/xóa bài và khối giới thiệu, menu, lọc/xem ảnh, soạn bài, lưu lỗi và không tràn ngang. Chưa kiểm tra gửi SMTP tới hộp thư thật hoặc Apache trên hosting ngoài máy.
+
+Thêm `--baseline` nếu muốn đối chiếu ảnh, cấu hình và database với bản **trước khi gộp**. Sau khi bạn chủ động thay nội dung/cấu hình, phép đối chiếu này sẽ báo khác biệt; kiểm tra thông thường dùng dữ liệu hiện tại.
+
+## Khôi phục bản trước khi gộp
+
+Giữ `.local/project-before-consolidation.zip` và `.local/history.zip` trong vùng riêng. Archive mã nguồn chứa cả cấu hình cục bộ và SQL database trong `backup/`, không đưa lên vùng public hoặc chia sẻ công khai. Có thể giải nén archive sang thư mục khác để đối chiếu hoặc khôi phục. Chỉ nhập SQL sao lưu khi chủ động muốn thay database bằng bản trước khi gộp; file SQL này là bản khôi phục, không phải migration. `history.zip` giữ các file/công cụ thử cũ; website không cần giải nén nó để chạy.

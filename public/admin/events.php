@@ -1,7 +1,5 @@
 <?php
 require __DIR__ . '/../../app/bootstrap.php';
-
-
 admin_required();
 $edit = null; $rows = []; $ready = true;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

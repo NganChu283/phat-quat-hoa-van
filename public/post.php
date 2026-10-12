@@ -1,8 +1,5 @@
 <?php
 require __DIR__ . '/../app/bootstrap.php';
-
-
-
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT); $post = false;
 try { if ($id && $id > 0) { $q = db()->prepare('SELECT * FROM posts WHERE id=? AND published=1'); $q->execute([$id]); $post = $q->fetch(); } }
 catch (PDOException $ex) { http_response_code(503); exit('Chưa thể tải bài viết. Vui lòng thử lại sau.'); }

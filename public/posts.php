@@ -1,5 +1,5 @@
 <?php
-require __DIR__.'/../app/bootstrap.php';  
+require __DIR__.'/../app/bootstrap.php';
 $page=max(1,min(100000,(int)($_GET['page'] ?? 1))); $offset=($page-1)*12; $posts=[]; $total=0;
 try { $total=(int)db()->query('SELECT COUNT(*) FROM posts WHERE published=1')->fetchColumn(); $posts=query_all("SELECT * FROM posts WHERE published=1 ORDER BY created_at DESC,id DESC LIMIT 12 OFFSET $offset"); }
 catch (PDOException $ex) { http_response_code(503); }
