@@ -1,5 +1,15 @@
 <?php
 declare(strict_types=1);
+// Apache rewrites root URLs to public/*.php. Use the browser-facing path in links.
+if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server') {
+    $requestedPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    $scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+    $publicPosition = strrpos($scriptPath, '/public/');
+    if ($publicPosition !== false && !str_starts_with($requestedPath, substr($scriptPath, 0, $publicPosition) . '/public/')) {
+        $_SERVER['SCRIPT_NAME'] = substr($scriptPath, 0, $publicPosition) . substr($scriptPath, $publicPosition + 7);
+    }
+}
+
 ini_set('session.use_strict_mode', '1');
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
 if (PHP_SAPI !== 'cli') session_start();

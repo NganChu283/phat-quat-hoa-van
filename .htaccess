@@ -1,8 +1,13 @@
-# Apache: chặn đọc cấu hình/database khi toàn bộ dự án nằm trong htdocs.
-# Hosting thực tế nên đặt document root vào public/.
+DirectoryIndex index.php
+Options -Indexes
 RewriteEngine On
 RewriteRule (^|/)\. - [F,L]
 RewriteRule ^(?:app|database)(?:/|$) - [F,L,NC]
-<FilesMatch "^(README\.md|\.gitignore)$">
+<FilesMatch "^(README\.md|start\.ps1|start\.command|\.gitignore)$">
     Require all denied
 </FilesMatch>
+# Keep the homepage at the project root; serve other public URLs from public/.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^(assets/.*|admin(?:/.*)?|robots\.txt|[a-zA-Z0-9_-]+\.php)$ public/$1 [L]

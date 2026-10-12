@@ -11,4 +11,4 @@ $modules = & $phpExecutable -m
 if ($modules -notcontains 'gd' -and (Test-Path -LiteralPath (Join-Path (Split-Path $phpExecutable) 'ext\php_gd.dll'))) {
     $phpArguments += @('-d', 'extension=gd')
 }
-& $phpExecutable @phpArguments -S 127.0.0.1:8000 -t public app/router.php
+& $phpExecutable @phpArguments -S 127.0.0.1:8000 -t . app/router.php

@@ -16,13 +16,13 @@ C:/xampp/php/php.exe app/migrate.php
 5. Windows: chạy `./start.ps1`. Nếu PowerShell chặn script, dùng lệnh PHP trực tiếp:
 
 ```powershell
-C:/xampp/php/php.exe -d session.save_path=C:/xampp/htdocs/phat-quat-hoa-van/.local/sessions -d extension=gd -S 127.0.0.1:8000 -t public app/router.php
+C:/xampp/php/php.exe -d session.save_path=C:/xampp/htdocs/phat-quat-hoa-van/.local/sessions -d extension=gd -S 127.0.0.1:8000 -t . app/router.php
 ```
 
 Tạo `.local/sessions` nếu chưa có. `start.ps1` tự tạo thư mục này và bật GD khi có DLL. Trên macOS/XAMPP dùng `./start.command`; có thể đổi đường dẫn PHP trong script theo máy. Hoặc dùng PHP trong PATH:
 
 ```sh
-php -S 127.0.0.1:8000 -t public app/router.php
+php -S 127.0.0.1:8000 -t . app/router.php
 ```
 
 Website: http://127.0.0.1:8000. Quản trị: http://127.0.0.1:8000/admin/login.php. Nhấn Ctrl+C để dừng server.
@@ -43,8 +43,9 @@ app/
 database/
   schema.sql          Toàn bộ cấu trúc bảng
   seed.sql            Nội dung ban đầu, chỉ nhập một lần
+index.php             Trang chủ ở thư mục gốc
 public/
-  index.php           Trang chủ
+  index.php           Chuyển URL trang chủ cũ về index.php ở gốc
   posts.php, post.php  Danh sách bài viết và trang đọc bài
   faq.php, partners.php
   submit.php, calendar.php, sitemap.php, robots.txt
@@ -106,7 +107,9 @@ Worker xử lý tối đa 20 email/lần, có khóa chống chạy trùng và th
 
 ## Hosting, SEO và ảnh
 
-Đặt document root vào `public/`, giữ `app/` và `database/` ngoài vùng public. Với shared hosting có thể đưa nội dung public vào `public_html/` và app ở thư mục anh em. Cấu hình HTTPS, PDO MySQL, mbstring, DOM, fileinfo; GD để tạo ảnh WebP từ upload. Cấp quyền ghi phù hợp cho `assets/uploads`, không dùng 777. Trên hosting có tên database riêng, bỏ dòng CREATE DATABASE/USE khi nhập schema/seed. Apache dùng các `.htaccess` để chặn thư mục riêng, script trong assets và tạo alias đường dẫn cũ.
+Đặt document root vào thư mục gốc dự án, nơi có `index.php` và `.htaccess`. Trên InfinityFree, upload `index.php`, `.htaccess`, toàn bộ `app/` và `public/` vào `htdocs` của tên miền. Không upload `.local`, `.git`, `database/` và script khởi động. Xuất database hiện tại rồi import vào database đã tạo trên hosting để giữ tài khoản và nội dung. Sửa thông tin MySQL trong `app/config.local.php` và đặt `site_url` thành URL tên miền (không thêm `/public`). Trang quản trị ở `/admin/login.php`. File `.htaccess` gốc chuyển URL ảnh, trang phụ và quản trị tới `public/`, đồng thời chặn truy cập HTTP vào cấu hình riêng.
+
+Cấu hình HTTPS, PDO MySQL, mbstring, DOM, fileinfo; GD để tạo ảnh WebP từ upload. Cấp quyền ghi phù hợp cho `public/assets/uploads`, không dùng 777. Trên hosting có tên database riêng, bỏ dòng CREATE DATABASE/USE khi nhập schema/seed. Giữ các `.htaccess` trong thư mục con để chặn script trong assets và tạo alias đường dẫn cũ.
 
 Điền `site_url` bằng URL công khai (gồm đường dẫn con nếu có) để canonical/Open Graph đúng. `sitemap.php` sinh trang công khai và bài đã xuất bản; thêm URL đầy đủ vào robots.txt ở gốc tên miền. Có Event/BlogPosting JSON-LD. Google Fonts cần mạng; giao diện có font thay thế.
 
