@@ -1,4 +1,4 @@
-<?php require __DIR__.'/../app/bootstrap.php'; require __DIR__.'/../app/seo.php'; require __DIR__.'/../app/layout.php';
+<?php require __DIR__.'/../app/bootstrap.php';  
 $faq=[
  'Đăng ký tham gia bằng cách nào?' => 'Điền biểu mẫu đăng ký trên trang chủ. Ban tổ chức sẽ liên hệ qua email hoặc số điện thoại để xác nhận lịch và chỗ tham gia.',
  'Email xác nhận có phải vé tham dự không?' => 'Email tự động xác nhận rằng dự án đã nhận yêu cầu đăng ký. Lịch và chỗ tham gia cần được ban tổ chức xác nhận riêng.',

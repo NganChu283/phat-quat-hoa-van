@@ -1,5 +1,5 @@
 <?php
-require __DIR__.'/../app/bootstrap.php'; require __DIR__.'/../app/seo.php';
+require __DIR__.'/../app/bootstrap.php'; 
 try { $posts=query_all('SELECT id,updated_at FROM posts WHERE published=1'); }
 catch (PDOException $ex) { http_response_code(503); exit; }
 header('Content-Type: application/xml; charset=utf-8');

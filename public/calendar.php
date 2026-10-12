@@ -1,6 +1,6 @@
 <?php
 require __DIR__.'/../app/bootstrap.php';
-require __DIR__.'/../app/projects.php';
+
 $project=db()->query('SELECT * FROM projects WHERE featured=1 AND published=1 LIMIT 1')->fetch();
 if (!$project || empty($project['starts_at']) || empty($project['ends_at']) || empty($project['venue']) || empty($project['address'])) { http_response_code(404); exit('Lịch sự kiện chưa đầy đủ.'); }
 function ics_text(string $s): string { return str_replace(["\\","\r","\n",';',','],['\\\\','', '\\n','\\;','\\,'],$s); }

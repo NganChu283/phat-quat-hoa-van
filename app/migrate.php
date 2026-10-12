@@ -1,14 +1,17 @@
 <?php
 if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
 require __DIR__.'/bootstrap.php';
-require __DIR__.'/stories.php';
+$schema=file_get_contents(__DIR__.'/../database/schema.sql');
+$schema=preg_replace('/^(?:CREATE DATABASE|USE )[^\n]*\n/m','',$schema);
+db()->exec($schema);
+
 $columns=array_column(query_all('SHOW COLUMNS FROM projects'),'Field');
 foreach (['ends_at'=>'DATETIME NULL','venue'=>"VARCHAR(180) NOT NULL DEFAULT ''",'address'=>"VARCHAR(500) NOT NULL DEFAULT ''",'schedule'=>'TEXT NULL'] as $name=>$definition) {
     if (!in_array($name,$columns,true)) db()->exec("ALTER TABLE projects ADD COLUMN $name $definition");
 }
-db()->exec(file_get_contents(__DIR__.'/../database/features.sql'));
-db()->exec(file_get_contents(__DIR__.'/../database/admin-upgrade.sql'));
-db()->exec(file_get_contents(__DIR__.'/../database/stories.sql'));
+
+
+
 $introColumns=array_column(query_all('SHOW COLUMNS FROM story_settings'),'Field');
 foreach (['published'=>'TINYINT(1) NOT NULL DEFAULT 1','sort_order'=>'INT NOT NULL DEFAULT 0'] as $name=>$definition) {
     if (!in_array($name,$introColumns,true)) db()->exec("ALTER TABLE story_settings ADD COLUMN $name $definition");
@@ -65,3 +68,21 @@ try {
     $pdo->commit();
 } catch (Throwable $ex) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $ex; }
 echo "Features migration applied.\n";
+
+if (in_array('--photos',$argv,true)) {
+$photos=default_gallery(); $pdo=db(); $pdo->beginTransaction();
+try {
+    $exists=$pdo->prepare('SELECT id FROM gallery WHERE image=? LIMIT 1');
+    $insert=$pdo->prepare('INSERT INTO gallery (title,image,category) VALUES (?,?,?)');
+    foreach (array_reverse($photos) as $photo) {
+        if (!is_file(__DIR__.'/../public/'.$photo['image'])) throw new RuntimeException('Missing photo: '.$photo['image']);
+        $exists->execute([$photo['image']]);
+        if (!$exists->fetch()) $insert->execute([$photo['title'],$photo['image'],$photo['category']]);
+    }
+    $pdo->exec("DELETE FROM gallery WHERE image='assets/village.jpg' AND title='Sắc màu quạt Chàng Sơn'");
+    $update=$pdo->prepare("UPDATE posts SET image=? WHERE title=? AND image='assets/village.jpg'");
+    $update->execute(['assets/chang-son-fans.webp','Chàng Sơn — Giữ trọn ký ức trong từng nan quạt']);
+    $update->execute(['assets/making-fans.webp','Phất Quạt Họa Văn — Câu chuyện của dự án']);
+    $pdo->commit(); echo "Photo gallery and sample article covers updated.\n";
+} catch (Throwable $ex) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $ex; }
+}

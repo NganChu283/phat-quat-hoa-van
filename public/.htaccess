@@ -1,2 +1,8 @@
 DirectoryIndex index.php
 Options -Indexes
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^assets/admin\.css$ assets/style.css [L]
+RewriteRule ^assets/editor\.js$ assets/app.js [L]
+RewriteRule ^assets/photos/([a-zA-Z0-9._-]+\.(?:webp|png|jpe?g))$ assets/$1 [L,NC]
+</IfModule>
