@@ -1,0 +1,10 @@
+<section class="admin-card" id="intro-form"><h2><?= !empty($story['id'])?'Sửa phần giới thiệu':'Thêm phần giới thiệu' ?></h2>
+<form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><input type="hidden" name="entity" value="intro"><input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($story['id'] ?? 0) ?>">
+<label>Nhãn phía trên tiêu đề<input name="eyebrow" maxlength="120" value="<?= e($story['eyebrow']) ?>"></label><div class="admin-grid"><label>Tiêu đề dòng đầu<input name="title" maxlength="180" required value="<?= e($story['title']) ?>"></label><label>Dòng nhấn mạnh (không bắt buộc)<input name="title_accent" maxlength="180" value="<?= e($story['title_accent']) ?>"></label></div>
+<label>Giới thiệu ngắn<textarea name="intro" maxlength="2000" rows="4" required><?= e($story['intro']) ?></textarea></label>
+<div class="admin-grid"><label>Đường dẫn ảnh<input name="image" maxlength="255" value="<?= e($story['image']) ?>"></label><label>Tải ảnh thay thế (tối đa 3 MB)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label></div>
+<img class="story-admin-preview" src="../<?= e($story['image']) ?>" alt="<?= e($story['image_alt']) ?>">
+<label>Mô tả ảnh<input name="image_alt" maxlength="180" required value="<?= e($story['image_alt']) ?>"></label><label>Chú thích dưới ảnh<input name="image_caption" maxlength="255" value="<?= e($story['image_caption']) ?>"></label>
+<label>Thứ tự hiển thị (số nhỏ đứng trước)<input type="number" name="sort_order" min="0" max="9999" value="<?= (int)($story['sort_order'] ?? 0) ?>" required></label>
+<label class="check"><input type="checkbox" name="published" value="1" <?= !empty($story['published'])?'checked':'' ?>><span>Hiển thị trên trang chủ</span></label>
+<div class="admin-actions"><button class="button" type="submit">Lưu phần giới thiệu</button><a class="text-link" href="stories.php?mode=intro">Hủy / về danh sách</a></div></form></section>

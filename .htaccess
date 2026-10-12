@@ -1,0 +1,8 @@
+# Apache: chặn đọc cấu hình/database khi toàn bộ dự án nằm trong htdocs.
+# Hosting thực tế nên đặt document root vào public/.
+RewriteEngine On
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^(?:app|database)(?:/|$) - [F,L,NC]
+<FilesMatch "^(README\.md|\.gitignore)$">
+    Require all denied
+</FilesMatch>

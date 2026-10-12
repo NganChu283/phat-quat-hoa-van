@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /submit.php
+Disallow: /calendar.php
+
+# Set an absolute Sitemap URL for your production domain:
+# Sitemap: https://your-domain.example/sitemap.php

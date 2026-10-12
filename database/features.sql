@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS mail_queue (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ registration_id INT UNSIGNED NOT NULL,
+ recipient VARCHAR(254) NOT NULL,
+ subject VARCHAR(255) NOT NULL, body TEXT NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT 'pending',
+ attempts INT NOT NULL DEFAULT 0, last_error VARCHAR(255) NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, sent_at DATETIME NULL,
+ INDEX (registration_id), INDEX (status)
+);
+CREATE TABLE IF NOT EXISTS form_limits (
+ fingerprint CHAR(64) PRIMARY KEY, window_started BIGINT NOT NULL, attempts INT NOT NULL
+);
