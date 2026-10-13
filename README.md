@@ -1,4 +1,4 @@
-# Phất Quạt Họa Văn / Xòe
+# Xoè 2026
 
 Website PHP 8+ và MySQL/MariaDB, chạy với XAMPP hoặc hosting PHP. Không cần Composer hay Node.js để chạy website.
 
@@ -140,3 +140,5 @@ Thêm `--baseline` nếu muốn đối chiếu ảnh, cấu hình và database v
 ## Khôi phục bản trước khi gộp
 
 Giữ `.local/project-before-consolidation.zip` và `.local/history.zip` trong vùng riêng. Archive mã nguồn chứa cả cấu hình cục bộ và SQL database trong `backup/`, không đưa lên vùng public hoặc chia sẻ công khai. Có thể giải nén archive sang thư mục khác để đối chiếu hoặc khôi phục. Chỉ nhập SQL sao lưu khi chủ động muốn thay database bằng bản trước khi gộp; file SQL này là bản khôi phục, không phải migration. `history.zip` giữ các file/công cụ thử cũ; website không cần giải nén nó để chạy.
+
+Đổi tên nội dung (12/10/2026): sau khi cập nhật mã nguồn trên database hiện có, chạy `php app/rename-brand.php` để đổi tên dự án thành Xoè 2026 và sự kiện thành Xoè nếp xưa, đón gió lành. Lệnh chỉ thay các cụm tên cũ, có thể chạy lại.

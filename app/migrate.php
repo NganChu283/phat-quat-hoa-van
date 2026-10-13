@@ -32,7 +32,7 @@ try {
     if (!$q->fetch()) {
         if (!(int)$pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn()) {
             $q=$pdo->prepare('INSERT INTO projects (title,description,starts_at,featured,published) VALUES (?,?,NULL,1,1)');
-            $q->execute(['Chạm Ký Hồn Quê','Một nếp quạt mở. Một miền ký ức. Cùng khám phá vẻ đẹp của làng nghề quạt Chàng Sơn.']);
+            $q->execute(['Xoè nếp xưa, đón gió lành','Một nếp quạt mở. Một miền ký ức. Cùng khám phá vẻ đẹp của làng nghề quạt Chàng Sơn.']);
         }
         $c=config();
         if (!empty($c['admin_password_hash'])) {
@@ -44,10 +44,10 @@ try {
     $knownEventMigration='known-event-cham-ky-hon-que-20261012';
     $q=$pdo->prepare('SELECT name FROM app_migrations WHERE name=?'); $q->execute([$knownEventMigration]);
     if (!$q->fetch()) {
-        $q=$pdo->prepare('SELECT id FROM projects WHERE title=? LIMIT 1'); $q->execute(['Chạm Ký Hồn Quê']);
+        $q=$pdo->prepare('SELECT id FROM projects WHERE title=? LIMIT 1'); $q->execute(['Xoè nếp xưa, đón gió lành']);
         if (!$q->fetch()) {
             $q=$pdo->prepare('INSERT INTO projects (title,description,starts_at,featured,published) VALUES (?,?,NULL,NULL,1)');
-            $q->execute(['Chạm Ký Hồn Quê','Một nếp quạt mở. Một miền ký ức. Cùng khám phá vẻ đẹp của làng nghề quạt Chàng Sơn.']);
+            $q->execute(['Xoè nếp xưa, đón gió lành','Một nếp quạt mở. Một miền ký ức. Cùng khám phá vẻ đẹp của làng nghề quạt Chàng Sơn.']);
         }
         $q=$pdo->prepare('INSERT INTO app_migrations (name) VALUES (?)'); $q->execute([$knownEventMigration]);
     }
@@ -62,12 +62,13 @@ try {
             foreach (default_story_sections() as $section) $q->execute([$section['title'],$section['body'],$section['body_format'],$section['published'],$section['sort_order']]);
         }
         $q=$pdo->prepare('UPDATE posts SET show_on_home=1 WHERE title IN (?,?) AND published=1');
-        $q->execute(['Chàng Sơn — Giữ trọn ký ức trong từng nan quạt','Phất Quạt Họa Văn — Câu chuyện của dự án']);
+        $q->execute(['Chàng Sơn — Giữ trọn ký ức trong từng nan quạt','Xoè 2026 — Câu chuyện của dự án']);
         $q=$pdo->prepare('INSERT INTO app_migrations (name) VALUES (?)'); $q->execute([$storyMigration]);
     }
     $pdo->commit();
 } catch (Throwable $ex) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $ex; }
 echo "Features migration applied.\n";
+require __DIR__.'/rename-brand.php';
 
 if (in_array('--photos',$argv,true)) {
 $photos=default_gallery(); $pdo=db(); $pdo->beginTransaction();
@@ -82,7 +83,7 @@ try {
     $pdo->exec("DELETE FROM gallery WHERE image='assets/village.jpg' AND title='Sắc màu quạt Chàng Sơn'");
     $update=$pdo->prepare("UPDATE posts SET image=? WHERE title=? AND image='assets/village.jpg'");
     $update->execute(['assets/chang-son-fans.webp','Chàng Sơn — Giữ trọn ký ức trong từng nan quạt']);
-    $update->execute(['assets/making-fans.webp','Phất Quạt Họa Văn — Câu chuyện của dự án']);
+    $update->execute(['assets/making-fans.webp','Xoè 2026 — Câu chuyện của dự án']);
     $pdo->commit(); echo "Photo gallery and sample article covers updated.\n";
 } catch (Throwable $ex) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $ex; }
 }

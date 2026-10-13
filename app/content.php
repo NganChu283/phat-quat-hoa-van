@@ -24,42 +24,85 @@ function default_story_settings(): array {
 }
 function default_story_sections(): array {
     return [
-        ['title'=>'Lịch sử hình thành','body'=>'Theo nội dung dự án Phất Quạt Họa Văn, làng nghề quạt Chàng Sơn có lịch sử hơn 200 năm, hình thành từ thế kỷ XIX. Nghề làm quạt được người dân giữ gìn và truyền dạy qua nhiều thế hệ.','body_format'=>'plain','published'=>1,'sort_order'=>10],
-        ['title'=>'Phất Quạt Họa Văn','body'=>"Dự án được tổ chức bởi nhóm sinh viên năm 3 lớp Truyền thông Marketing K43A1, thuộc Khoa Quan hệ Công chúng & Quảng cáo — Học viện Báo chí và Tuyên truyền.\n\nDự án giới thiệu và lan tỏa giá trị của làng nghề quạt Chàng Sơn tới cộng đồng.",'body_format'=>'plain','published'=>1,'sort_order'=>20],
+        ['title'=>'Lịch sử hình thành','body'=>'Theo nội dung dự án Xoè 2026, làng nghề quạt Chàng Sơn có lịch sử hơn 200 năm, hình thành từ thế kỷ XIX. Nghề làm quạt được người dân giữ gìn và truyền dạy qua nhiều thế hệ.','body_format'=>'plain','published'=>1,'sort_order'=>10],
+        ['title'=>'Xoè 2026','body'=>"Dự án được tổ chức bởi nhóm sinh viên năm 3 lớp Truyền thông Marketing K43A1, thuộc Khoa Quan hệ Công chúng & Quảng cáo — Học viện Báo chí và Tuyên truyền.\n\nDự án giới thiệu và lan tỏa giá trị của làng nghề quạt Chàng Sơn tới cộng đồng.",'body_format'=>'plain','published'=>1,'sort_order'=>20],
     ];
 }
 
 // rich-text.php
+function rich_text_styles(DOMElement $node): string {
+    $styles=[];
+    $fonts=['arial'=>'Arial','georgia'=>'Georgia','times new roman'=>'Times New Roman','verdana'=>'Verdana'];
+    $colors=function(string $value): ?string {
+        $value=strtolower(trim($value));
+        if(preg_match('/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/',$value))return $value;
+        if(preg_match('/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/',$value,$rgb) && max((int)$rgb[1],(int)$rgb[2],(int)$rgb[3])<=255)return 'rgb('.(int)$rgb[1].', '.(int)$rgb[2].', '.(int)$rgb[3].')';
+        return null;
+    };
+    if(strtolower($node->tagName)==='font'){
+        $size=[1=>12,2=>14,3=>16,4=>18,5=>24,6=>32,7=>48][(int)$node->getAttribute('size')]??null;
+        if($size)$styles['font-size']=$size.'px';
+        if($color=$colors($node->getAttribute('color')))$styles['color']=$color;
+        $face=strtolower(trim($node->getAttribute('face')," \t\n\r\0\x0B\"'"));
+        if(isset($fonts[$face]))$styles['font-family']=$fonts[$face];
+    }
+    foreach(explode(';',$node->getAttribute('style')) as $declaration){
+        if(!str_contains($declaration,':'))continue;
+        [$property,$value]=array_map('trim',explode(':',$declaration,2));
+        $property=strtolower($property); $value=strtolower($value);
+        $allowed=['text-align'=>['left','center','right','justify'],'font-weight'=>['normal','bold','400','700'],'font-style'=>['normal','italic'],'text-decoration'=>['none','underline','line-through','underline line-through'],'text-decoration-line'=>['none','underline','line-through','underline line-through'],'font-size'=>['12px','14px','16px','18px','24px','32px','48px']];
+        if(isset($allowed[$property])&&in_array($value,$allowed[$property],true))$styles[$property]=$value;
+        elseif(in_array($property,['color','background-color'],true)&&($color=$colors($value)))$styles[$property]=$color;
+        elseif($property==='font-family'&&isset($fonts[trim($value,"\"'")]))$styles[$property]=$fonts[trim($value,"\"'")];
+    }
+    $out=[];foreach($styles as $property=>$value)$out[]=$property.': '.$value;
+    return implode('; ',$out);
+}
 function sanitize_rich_text(string $html): string {
-    if (trim($html)==='') return '';
-    $dom=new DOMDocument('1.0','UTF-8'); $prior=libxml_use_internal_errors(true);
-    try { $dom->loadHTML('<?xml encoding="UTF-8"><body>'.$html.'</body>',LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING); }
-    finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
-    $allowed=['p','br','strong','b','em','i','u','h2','h3','ul','ol','li','blockquote','a'];
+    if(trim($html)==='')return '';
+    $dom=new DOMDocument('1.0','UTF-8');$prior=libxml_use_internal_errors(true);
+    try{$dom->loadHTML('<?xml encoding="UTF-8"><body>'.$html.'</body>',LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING);}
+    finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
+    $allowed=['p','br','strong','b','em','i','u','s','strike','sup','sub','span','font','h1','h2','h3','ul','ol','li','blockquote','a','img','hr','table','caption','thead','tbody','tfoot','tr','th','td'];
     $blocked=['script','style','iframe','object','embed','svg','math','form','input','button','textarea','select','template'];
-    $render=function(DOMNode $node) use (&$render,$allowed,$blocked): string {
-        if ($node instanceof DOMText) return e($node->nodeValue);
-        if (!($node instanceof DOMElement)) return '';
-        $tag=strtolower($node->tagName); if (in_array($tag,$blocked,true)) return '';
-        $inner=''; foreach ($node->childNodes as $child) $inner.=$render($child);
-        if ($tag==='div') $tag='p';
-        if (!in_array($tag,$allowed,true)) return $inner;
-        if ($tag==='br') return '<br>';
+    $render=function(DOMNode $node)use(&$render,$allowed,$blocked):string{
+        if($node instanceof DOMText)return e($node->nodeValue);
+        if(!($node instanceof DOMElement))return '';
+        $tag=strtolower($node->tagName);if(in_array($tag,$blocked,true))return '';
+        $inner='';foreach($node->childNodes as $child)$inner.=$render($child);
+        if($tag==='div')$tag='p';
+        if(!in_array($tag,$allowed,true))return $inner;
+        if($tag==='font')$tag='span';if($tag==='strike')$tag='s';
+        if(in_array($tag,['br','hr'],true))return '<'.$tag.'>';
         $attrs='';
-        if ($tag==='a') {
+        if($tag==='a'){
             $href=trim($node->getAttribute('href'));
-            if (!preg_match('~^(?:https?://|mailto:|/(?!/)|#)~i',$href) || preg_match('/[\x00-\x20\x7f]/',$href)) return $inner;
+            if(!preg_match('~^(?:https?://|mailto:|/(?!/)|#)~i',$href)||preg_match('/[\x00-\x20\x7f]/',$href))return $inner;
             $attrs=' href="'.e($href).'" rel="noopener noreferrer"';
         }
+        if($tag==='img'){
+            $src=$node->getAttribute('src');
+            if(!str_starts_with($src,'assets/')&&!preg_match('~^/(?!/)~',$src))return '';
+            $path=parse_url($src,PHP_URL_PATH);
+            if(!is_string($path))return '';
+            if(str_starts_with($path,'/'))$path=preg_replace('~^/(?:.*?/)?assets/~','assets/',$path);
+            if(!image_path($path)||!is_file(__DIR__.'/../public/'.$path))return '';
+            return '<img src="'.asset_url($path).'" alt="'.e(mb_substr($node->getAttribute('alt'),0,255)).'" loading="lazy">';
+        }
+        if(in_array($tag,['td','th'],true)){
+            foreach(['colspan','rowspan'] as $attribute){$value=$node->getAttribute($attribute);if(ctype_digit($value)&&(int)$value>=1&&(int)$value<=50)$attrs.=' '.$attribute.'="'.(int)$value.'"';}
+        }
+        if($style=rich_text_styles($node))$attrs.=' style="'.e($style).'"';
         return '<'.$tag.$attrs.'>'.$inner.'</'.$tag.'>';
     };
-    $out=''; $body=$dom->getElementsByTagName('body')->item(0);
-    if ($body) foreach ($body->childNodes as $child) $out.=$render($child);
+    $out='';$body=$dom->getElementsByTagName('body')->item(0);
+    if($body)foreach($body->childNodes as $child)$out.=$render($child);
     return trim($out);
 }
 function rich_text_has_content(string $html): bool {
-    return trim(str_replace("\u{00a0}",' ',html_entity_decode(strip_tags($html),ENT_QUOTES|ENT_HTML5,'UTF-8')))!=='';
+    return trim(str_replace("\u{00a0}",' ',html_entity_decode(strip_tags($html),ENT_QUOTES|ENT_HTML5,'UTF-8')))!=='' || (bool)preg_match('/<img\b/i',$html);
 }
+
 function post_body(array $post): string {
     if (($post['body_format'] ?? 'plain')==='html') return sanitize_rich_text($post['body']);
     return '<p>'.nl2br(e($post['body'])).'</p>';

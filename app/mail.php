@@ -1,9 +1,9 @@
 <?php
 function queue_registration(int $id, string $name, string $email, string $phone, string $activity, string $message): void {
     $q=db()->prepare('INSERT INTO mail_queue (registration_id,recipient,subject,body) VALUES (?,?,?,?)');
-    $q->execute([$id,$email,'Đã nhận đăng ký — Phất Quạt Họa Văn',"Xin chào $name,\n\nChúng tôi đã nhận đăng ký #$id của bạn cho hoạt động: $activity.\nBan tổ chức sẽ liên hệ để xác nhận lịch và chỗ tham gia. Email này xác nhận đã nhận yêu cầu, chưa phải vé tham dự.\n\nPhất Quạt Họa Văn"]);
+    $q->execute([$id,$email,'Đã nhận đăng ký — Xoè 2026',"Xin chào $name,\n\nChúng tôi đã nhận đăng ký #$id của bạn cho hoạt động: $activity.\nBan tổ chức sẽ liên hệ để xác nhận lịch và chỗ tham gia. Email này xác nhận đã nhận yêu cầu, chưa phải vé tham dự.\n\nXoè 2026"]);
     $organizer=config()['organizer_email'] ?? '';
-    if (filter_var($organizer,FILTER_VALIDATE_EMAIL)) $q->execute([$id,$organizer,"Đăng ký mới #$id — Phất Quạt Họa Văn","Họ tên: $name\nEmail: $email\nĐiện thoại: $phone\nHoạt động: $activity\nLời nhắn: $message"]);
+    if (filter_var($organizer,FILTER_VALIDATE_EMAIL)) $q->execute([$id,$organizer,"Đăng ký mới #$id — Xoè 2026","Họ tên: $name\nEmail: $email\nĐiện thoại: $phone\nHoạt động: $activity\nLời nhắn: $message"]);
 }
 function smtp_send(string $recipient, string $subject, string $body): void {
     $c=config(); $host=$c['smtp_host'] ?? ''; $from=$c['mail_from'] ?? '';

@@ -11,13 +11,31 @@ function site_path(string $path = ''): string {
 // Trả về URL đã escape cho thuộc tính HTML, kèm mã phiên bản theo thời gian sửa file.
 function asset_url(string $path): string {
     $file = __DIR__ . '/../public/' . $path;
-    return e(site_path($path) . (is_file($file) ? '?v=' . filemtime($file) : ''));
+    // Resolve the physical asset directory without depending on URL rewriting.
+    $documentRoot = !empty($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false;
+    $publicRoot = realpath(__DIR__.'/../public');
+    $url = null;
+    if ($documentRoot && $publicRoot) {
+        $documentRoot = rtrim(str_replace('\\','/',$documentRoot),'/');
+        $publicRoot = str_replace('\\','/',$publicRoot);
+        if (strncasecmp($publicRoot.'/', $documentRoot.'/', strlen($documentRoot)+1)===0) {
+            $url = substr($publicRoot,strlen($documentRoot)).'/'.ltrim($path,'/');
+        }
+    }
+    if ($url===null) {
+        $script = str_replace('\\','/',$_SERVER['SCRIPT_NAME'] ?? '/index.php');
+        $base = preg_replace('~/(?:public(?:/admin)?|admin)/[^/]*$~','',$script);
+        if ($base===$script) $base=dirname($script);
+        $base=str_replace('\\','/',$base);
+        $url = ($base==='/' || $base==='.' ? '' : rtrim($base,'/')).'/public/'.ltrim($path,'/');
+    }
+    return e($url . (is_file($file) ? '?v=' . filemtime($file) : ''));
 }
 function site_header(bool $home = false): void {
     $section = fn(string $id): string => e($home ? '#' . $id : site_path('index.php') . '#' . $id);
     ?>
 <a class="skip" href="#noi-dung">Đến nội dung chính</a>
-<header class="header"><a class="brand" href="<?= e(site_path('index.php')) ?>" aria-label="Phất Quạt Họa Văn — trang chủ"><img class="brand-logo xoe-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" decoding="async" alt="Xòe — Phất Quạt Họa Văn"></a>
+<header class="header"><a class="brand" href="<?= e(site_path('index.php')) ?>" aria-label="Xoè 2026 — trang chủ"><img class="brand-logo xoe-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" decoding="async" alt="Xòe — Xoè 2026"></a>
 <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="navigation">Danh mục <span aria-hidden="true">☰</span></button>
 <nav id="navigation" aria-label="Điều hướng chính"><a href="<?= $section('cau-chuyen') ?>">Câu chuyện</a><a href="<?= $section('lich-su-kien') ?>">Sự kiện</a><a class="button small nav-cta" href="<?= $section('dang-ky') ?>">Đăng ký tham gia <span aria-hidden="true">↗</span></a></nav></header>
 <?php
@@ -25,7 +43,7 @@ function site_header(bool $home = false): void {
 function site_footer(bool $home = false): void {
     $contact = e($home ? '#lien-he' : site_path('index.php') . '#lien-he');
     ?>
-<footer><a class="brand" href="<?= e(site_path('index.php')) ?>"><img class="footer-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" alt="Xòe — Phất Quạt Họa Văn" loading="lazy"></a><p>Giữ trọn ký ức trong từng nan quạt.</p>
+<footer><a class="brand" href="<?= e(site_path('index.php')) ?>"><img class="footer-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" alt="Xòe — Xoè 2026" loading="lazy"></a><p>Giữ trọn ký ức trong từng nan quạt.</p>
 <div class="footer-links" role="navigation" aria-label="Liên kết chân trang"><a href="<?= e(site_path('faq.php')) ?>">FAQ</a><a href="<?= e(site_path('partners.php')) ?>">Đơn vị đồng hành</a><a href="<?= $contact ?>">Liên hệ</a><a href="<?= e(site_path('admin/login.php')) ?>">Quản trị ↗</a><a href="#top">Về đầu trang ↑</a></div></footer>
 <?php
 }
@@ -58,7 +76,7 @@ function json_ld(array $data): void {
 function seo(string $title, string $description, string $path, string $image='assets/chang-son-fans.webp', string $type='website'): void {
     echo '<title>'.e($title).'</title><meta name="description" content="'.e($description).'">';
     echo '<link rel="canonical" href="'.e(site_url($path)).'">';
-    foreach (['og:locale'=>'vi_VN','og:site_name'=>'Phất Quạt Họa Văn','og:type'=>$type,'og:title'=>$title,'og:description'=>$description,'og:url'=>site_url($path),'og:image'=>site_url($image),'og:image:alt'=>$title] as $key=>$value) echo '<meta property="'.e($key).'" content="'.e($value).'">';
+    foreach (['og:locale'=>'vi_VN','og:site_name'=>'Xoè 2026','og:type'=>$type,'og:title'=>$title,'og:description'=>$description,'og:url'=>site_url($path),'og:image'=>site_url($image),'og:image:alt'=>$title] as $key=>$value) echo '<meta property="'.e($key).'" content="'.e($value).'">';
     echo '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'.e($title).'"><meta name="twitter:description" content="'.e($description).'"><meta name="twitter:image" content="'.e(site_url($image)).'">';
 }
 
@@ -142,21 +160,54 @@ if (!$visibleIntros && ($storySections || $storyPosts)) $visibleIntros=[null];
 <?php
 }
 
-function render_editor(?array $edit=null, string $editorLabel='Nội dung bài viết'): void { ?>
-<div class="rich-editor" data-rich-editor>
-<label id="editor-label" for="post-body-source"><?= e($editorLabel ?? 'Nội dung bài viết') ?></label>
+function render_editor(?array $edit=null, string $editorLabel='Nội dung bài viết'): void {
+static $sequence=0; $editorId='post-body-'.(++$sequence); ?>
+<div class="rich-editor" data-rich-editor data-upload-url="<?= e(site_path('upload_editor_image.php')) ?>">
+<label id="<?= $editorId ?>-label" for="<?= $editorId ?>-source"><?= e($editorLabel) ?></label>
 <div class="editor-toolbar" role="toolbar" aria-label="Định dạng nội dung bài viết" hidden>
-<?php foreach ([['bold','B','In đậm',null],['italic','I','In nghiêng',null],['underline','U','Gạch chân',null],['formatBlock','Đoạn','Đoạn văn','p'],['formatBlock','H2','Tiêu đề cấp 2','h2'],['formatBlock','H3','Tiêu đề cấp 3','h3'],['insertUnorderedList','• Danh sách','Danh sách dấu đầu dòng',null],['insertOrderedList','1. Danh sách','Danh sách đánh số',null],['formatBlock','❝','Trích dẫn','blockquote'],['createLink','Liên kết','Chèn liên kết',null],['unlink','Bỏ liên kết','Bỏ liên kết',null],['removeFormat','Xóa định dạng','Xóa định dạng',null],['undo','↶','Hoàn tác',null],['redo','↷','Làm lại',null]] as [$command,$text,$label,$value]): ?>
-<button type="button" data-command="<?= e($command) ?>" <?= $value?'data-value="'.e($value).'"':'' ?> title="<?= e($label) ?>" aria-label="<?= e($label) ?>"><?= e($text) ?></button>
+<div class="editor-tool-group">
+<?php foreach ([['undo','↶','Hoàn tác'],['redo','↷','Làm lại']] as [$command,$text,$label]): ?>
+<button type="button" data-command="<?= $command ?>" title="<?= e($label) ?>" aria-label="<?= e($label) ?>"><?= $text ?></button>
 <?php endforeach; ?></div>
-<div class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="editor-label" hidden><?= post_body($edit ?? ['body'=>'','body_format'=>'plain']) ?></div>
-<textarea id="post-body-source" name="body" rows="12" maxlength="60000"><?= e($edit['body'] ?? '') ?></textarea>
+<div class="editor-tool-group">
+<select data-command="formatBlock" aria-label="Kiểu đoạn" title="Kiểu đoạn"><option value="p">Đoạn văn</option><option value="h1">Tiêu đề 1</option><option value="h2">Tiêu đề 2</option><option value="h3">Tiêu đề 3</option><option value="blockquote">Trích dẫn</option></select>
+<select data-command="fontName" aria-label="Phông chữ" title="Phông chữ"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option></select>
+<select data-command="fontSize" aria-label="Cỡ chữ" title="Cỡ chữ"><?php foreach([1=>12,2=>14,3=>16,4=>18,5=>24,6=>32,7=>48] as $value=>$size): ?><option value="<?= $value ?>"<?= $value===3?' selected':'' ?>><?= $size ?></option><?php endforeach; ?></select>
+</div>
+<div class="editor-tool-group">
+<?php foreach ([['bold','B','In đậm'],['italic','I','In nghiêng'],['underline','U','Gạch chân'],['strikeThrough','S̶','Gạch ngang'],['superscript','x²','Chỉ số trên'],['subscript','x₂','Chỉ số dưới']] as [$command,$text,$label]): ?>
+<button type="button" data-command="<?= $command ?>" title="<?= e($label) ?>" aria-label="<?= e($label) ?>"><?= $text ?></button>
+<?php endforeach; ?>
+<label class="editor-color" title="Màu chữ">A<input type="color" data-command="foreColor" value="#30251f" aria-label="Màu chữ"></label>
+<label class="editor-color editor-highlight" title="Màu nền chữ">▰<input type="color" data-command="hiliteColor" value="#fff2a8" aria-label="Màu nền chữ"></label>
+</div>
+<div class="editor-tool-group">
+<?php foreach ([['justifyLeft','≡ ←','Căn trái'],['justifyCenter','≡','Căn giữa'],['justifyRight','→ ≡','Căn phải'],['justifyFull','☰','Căn đều'],['insertUnorderedList','• List','Danh sách dấu đầu dòng'],['insertOrderedList','1. List','Danh sách đánh số'],['outdent','←','Giảm thụt lề'],['indent','→','Tăng thụt lề']] as [$command,$text,$label]): ?>
+<button type="button" data-command="<?= $command ?>" title="<?= e($label) ?>" aria-label="<?= e($label) ?>"><?= $text ?></button>
+<?php endforeach; ?></div>
+<div class="editor-tool-group">
+<?php foreach ([['createLink','Liên kết','Chèn liên kết'],['unlink','Bỏ liên kết','Bỏ liên kết'],['insertImage','Ảnh','Chèn ảnh từ máy'],['insertTable','Bảng','Chèn bảng'],['insertHorizontalRule','—','Đường phân cách'],['removeFormat','Tx','Xóa định dạng']] as [$command,$text,$label]): ?>
+<button type="button" data-command="<?= $command ?>" title="<?= e($label) ?>" aria-label="<?= e($label) ?>"><?= $text ?></button>
+<?php endforeach; ?></div>
+<div class="editor-tool-group editor-table-tools" data-table-tools hidden>
+<?php foreach (['addRow'=>'Thêm hàng','addColumn'=>'Thêm cột','deleteRow'=>'Xóa hàng','deleteColumn'=>'Xóa cột','deleteTable'=>'Xóa bảng'] as $action=>$label): ?>
+<button type="button" data-table-action="<?= $action ?>"><?= e($label) ?></button>
+<?php endforeach; ?></div>
+</div>
+<div class="editor-table-picker" data-table-picker hidden>
+<label>Số hàng<input type="number" data-table-rows min="1" max="10" value="3"></label>
+<label>Số cột<input type="number" data-table-columns min="1" max="8" value="3"></label>
+<button type="button" data-table-insert>Chèn bảng</button><button type="button" data-table-cancel>Hủy</button>
+</div>
+<input type="file" data-editor-image accept="image/jpeg,image/png,image/webp" hidden>
+<div class="editor-content" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="<?= $editorId ?>-label" hidden><?= post_body($edit ?? ['body'=>'','body_format'=>'plain']) ?></div>
+<textarea id="<?= $editorId ?>-source" name="body" rows="12" maxlength="60000"><?= e($edit['body'] ?? '') ?></textarea>
 <input type="hidden" name="body_format" value="<?= e($edit['body_format'] ?? 'plain') ?>">
 <p class="editor-status" data-editor-status role="status">Dùng thanh công cụ để định dạng bài viết.</p>
 </div>
-
 <?php
 }
+
 
 function render_article_form(?array $edit=null): void { ?>
 <section class="admin-card"><h2><?= $edit?'Chỉnh sửa bài viết':'Thêm bài viết' ?></h2>
