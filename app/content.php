@@ -18,6 +18,25 @@ function featured_event(array $events): ?array {
     return null;
 }
 
+// Event registration links.
+function valid_google_form_url(string $url): bool {
+    if(strlen($url)>2048 || !filter_var($url,FILTER_VALIDATE_URL))return false;
+    $parts=parse_url($url);
+    if(($parts['scheme']??'')!=='https' || isset($parts['user']) || isset($parts['pass']) || isset($parts['port']))return false;
+    $host=strtolower($parts['host']??'');$path=$parts['path']??'';
+    if($host==='forms.gle')return (bool)preg_match('~^/[a-zA-Z0-9_-]+/?$~',$path);
+    return $host==='docs.google.com' && (bool)preg_match('~^/forms/(?:u/\d+/)?d/(?:e/)?[a-zA-Z0-9_-]+/viewform/?$~',$path);
+}
+function event_registration_closed(array $event): bool {
+    if(empty($event['ends_at']))return false;
+    try{return (new DateTimeImmutable($event['ends_at']))->getTimestamp()<=time();}
+    catch(Exception $error){return false;}
+}
+function event_registration_url(array $event): string {
+    $url=trim((string)($event['registration_url']??''));
+    return !event_registration_closed($event) && valid_google_form_url($url) ? $url : '';
+}
+
 // stories.php
 function default_story_settings(): array {
     return ['id'=>1,'eyebrow'=>'01 / CÂU CHUYỆN CHÀNG SƠN','title'=>'Ký ức mở ra','title_accent'=>'từ một nan quạt.','intro'=>'Chiếc quạt không chỉ mang làn gió mát. Trong từng nếp gấp còn có câu chuyện về bàn tay, chất liệu và ký ức làng nghề.','image'=>'assets/carved-bamboo-fan.webp','image_alt'=>'Đôi tay cầm chiếc quạt với họa tiết chạm khắc trên nan tre','image_caption'=>'Chàng Sơn · Nét chạm trong từng nan quạt'];
@@ -140,4 +159,14 @@ return [
     ['title'=>'Những chiếc quạt treo đầy sắc màu','image'=>'assets/hanging-fans.webp','category'=>'Quạt Chàng Sơn'],
     ['title'=>'Muôn dáng quạt, một câu chuyện','image'=>'assets/fan-collection.webp','category'=>'Quạt Chàng Sơn'],
 ];
+}
+
+function gallery_groups_ready(): bool {
+    try{db()->query('SELECT id FROM gallery_groups LIMIT 1');return true;}
+    catch(PDOException $error){if((int)($error->errorInfo[1]??0)===1146)return false;throw $error;}
+}
+function gallery_groups(): array {
+    if(gallery_groups_ready())return query_all('SELECT g.id,g.title,COUNT(p.id) image_count FROM gallery_groups g LEFT JOIN gallery p ON p.category=g.title GROUP BY g.id,g.title ORDER BY g.title');
+    $rows=query_all('SELECT category title,COUNT(*) image_count FROM gallery GROUP BY category ORDER BY category');
+    return $rows ?: [['id'=>0,'title'=>'Quạt Chàng Sơn','image_count'=>0],['id'=>0,'title'=>'Hoạt động','image_count'=>0]];
 }

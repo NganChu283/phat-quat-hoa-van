@@ -10,8 +10,22 @@ if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server') {
     }
 }
 
+$isHttps=(!empty($_SERVER['HTTPS']) && !in_array(strtolower((string)$_SERVER['HTTPS']),['off','0'],true)) || (int)($_SERVER['SERVER_PORT']??0)===443;
+// Keep hosting pages and session cookies on the configured HTTPS origin.
+if(PHP_SAPI!=='cli' && !$isHttps){
+    $canonical=parse_url(config()['site_url']??'');
+    $requestedHost=preg_replace('/:\d+$/','',$_SERVER['HTTP_HOST']??'');
+    if(is_array($canonical) && ($canonical['scheme']??'')==='https' && !empty($canonical['host']) && strcasecmp($requestedHost,$canonical['host'])===0){
+        $uri=$_SERVER['REQUEST_URI']??'/';
+        if(!str_starts_with($uri,'/') || str_contains($uri,"\r") || str_contains($uri,"\n"))$uri='/';
+        $url='https://'.$canonical['host'].(isset($canonical['port'])?':'.$canonical['port']:'').$uri;
+        header('Cache-Control: no-store');
+        header('Location: '.$url,true,($_SERVER['REQUEST_METHOD']??'GET')==='POST'?303:302);
+        exit;
+    }
+}
 ini_set('session.use_strict_mode', '1');
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+session_set_cookie_params(['path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>$isHttps]);
 if (PHP_SAPI !== 'cli') session_start();
 else $_SESSION = [];
 date_default_timezone_set("Asia/Ho_Chi_Minh");
@@ -38,8 +52,12 @@ function db(): PDO {
     return $pdo;
 }
 function csrf(): string { return $_SESSION['csrf'] ??= bin2hex(random_bytes(32)); }
+function csrf_valid(): bool {
+    $expected=$_SESSION['csrf']??null;$provided=$_POST['csrf']??null;
+    return is_string($expected) && $expected!=='' && is_string($provided) && $provided!=='' && hash_equals($expected,$provided);
+}
 function check_csrf(): void {
-    if (!is_string($_POST['csrf'] ?? null) || !hash_equals(csrf(), $_POST['csrf'])) {
+    if (!csrf_valid()) {
         http_response_code(403); exit('Phiên làm việc không hợp lệ. Vui lòng tải lại trang.');
     }
 }

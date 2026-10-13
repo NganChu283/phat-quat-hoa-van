@@ -4,6 +4,8 @@ require __DIR__.'/bootstrap.php';
 $schema=file_get_contents(__DIR__.'/../database/schema.sql');
 $schema=preg_replace('/^(?:CREATE DATABASE|USE )[^\n]*\n/m','',$schema);
 db()->exec($schema);
+require __DIR__.'/migrate-gallery-groups.php';
+
 
 $columns=array_column(query_all('SHOW COLUMNS FROM projects'),'Field');
 foreach (['ends_at'=>'DATETIME NULL','venue'=>"VARCHAR(180) NOT NULL DEFAULT ''",'address'=>"VARCHAR(500) NOT NULL DEFAULT ''",'schedule'=>'TEXT NULL'] as $name=>$definition) {
@@ -69,6 +71,7 @@ try {
 } catch (Throwable $ex) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $ex; }
 echo "Features migration applied.\n";
 require __DIR__.'/rename-brand.php';
+require __DIR__.'/migrate-event-forms.php';
 
 if (in_array('--photos',$argv,true)) {
 $photos=default_gallery(); $pdo=db(); $pdo->beginTransaction();

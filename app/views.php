@@ -37,7 +37,7 @@ function site_header(bool $home = false): void {
 <a class="skip" href="#noi-dung">Đến nội dung chính</a>
 <header class="header"><a class="brand" href="<?= e(site_path('index.php')) ?>" aria-label="Xoè 2026 — trang chủ"><img class="brand-logo xoe-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" decoding="async" alt="Xòe — Xoè 2026"></a>
 <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="navigation">Danh mục <span aria-hidden="true">☰</span></button>
-<nav id="navigation" aria-label="Điều hướng chính"><a href="<?= $section('cau-chuyen') ?>">Câu chuyện</a><a href="<?= $section('lich-su-kien') ?>">Sự kiện</a><a class="button small nav-cta" href="<?= $section('dang-ky') ?>">Đăng ký tham gia <span aria-hidden="true">↗</span></a></nav></header>
+<nav id="navigation" aria-label="Điều hướng chính"><a href="<?= $section('cau-chuyen') ?>">Câu chuyện</a><a href="<?= $section('lich-su-kien') ?>">Sự kiện</a><a class="button small nav-cta" href="<?= $section('dang-ky') ?>">Đăng ký sự kiện <span aria-hidden="true">↗</span></a></nav></header>
 <?php
 }
 function site_footer(bool $home = false): void {
@@ -50,12 +50,14 @@ function site_footer(bool $home = false): void {
 
 // admin-nav.php
 function admin_tabs(): array {
-    $tabs=['dashboard'=>'Tổng quan','projects'=>'Sự kiện','stories'=>'Câu chuyện & bài viết','gallery'=>'Ảnh dự án','registrations'=>'Đăng ký','contacts'=>'Liên hệ'];
+    $tabs=['dashboard'=>'Tổng quan','projects'=>'Sự kiện','stories'=>'Câu chuyện & bài viết','gallery'=>'Ảnh dự án','gallery_groups'=>'Nhóm ảnh','contacts'=>'Liên hệ'];
     if ((current_user()['role'] ?? '')==='admin') $tabs['users']='Tài khoản';
     return $tabs;
 }
 function admin_tab_url(string $tab): string {
+    if ($tab==='registrations') return 'index.php?tab=contacts&source=legacy';
     if ($tab==='projects') return 'events.php';
+    if ($tab==='gallery_groups') return 'gallery_groups.php';
     if ($tab==='users') return 'users.php';
     if ($tab==='stories') return 'stories.php';
     return 'index.php?tab='.rawurlencode($tab);
@@ -90,12 +92,13 @@ function render_event_strip(?array $project, ?DateTimeImmutable $start, array $c
     <?php if (!empty($project['ends_at'])): ?><p class="event-strip-meta">Kết thúc lúc <?= e((new DateTimeImmutable($project['ends_at']))->format('H:i · d/m/Y')) ?></p><?php endif; ?>
     <?php if (!empty($project['venue'])): ?><p class="event-strip-meta"><?= e($project['venue']) ?><?= !empty($project['address'])?' — '.e($project['address']):'' ?></p><?php endif; ?>
     <?php if (!empty($project['schedule'])): ?><details class="event-schedule"><summary>Lịch hoạt động</summary><p><?= e($project['schedule']) ?></p></details><?php endif; ?>
+    <?php if($project && ($registrationUrl=event_registration_url($project))): ?><a class="button event-strip-register" href="<?= e($registrationUrl) ?>" target="_blank" rel="noopener noreferrer">Đăng ký sự kiện <span aria-hidden="true">↗</span></a><?php endif; ?>
   </div>
   <div class="event-strip-clock">
     <div class="countdown" <?= $start ? 'data-target="'.e($start->format('c')).'" data-server-now="'.(time()*1000).'"' : '' ?> role="group" aria-label="Đếm ngược đến giờ bắt đầu dự án">
       <?php foreach (['Ngày','Giờ','Phút','Giây'] as $i=>$label): ?><div class="countdown-unit"><strong data-unit="<?= $i ?>"><?= $start ? str_pad((string)$clock[$i],2,'0',STR_PAD_LEFT) : '– –' ?></strong><span><?= e($label) ?></span></div><?php endforeach; ?>
     </div>
-    <p class="countdown-status" role="status"><?= $start ? ($remaining > 0 ? 'Đếm ngược đến giờ bắt đầu.' : 'Dự án đã đến giờ bắt đầu.') : 'Lịch tham gia sẽ được cập nhật.' ?></p>
+    <p class="countdown-status" role="status"><?= $start ? ($start->getTimestamp() > time() ? 'Đếm ngược đến giờ bắt đầu.' : 'Dự án đã đến giờ bắt đầu.') : 'Lịch tham gia sẽ được cập nhật.' ?></p>
     <noscript><p class="countdown-status">Bật JavaScript để đồng hồ cập nhật mỗi giây.</p></noscript>
   </div>
 </section>
@@ -129,6 +132,7 @@ function render_event_list(array $events, ?array $project): void { ?>
         <div><dt>Thời gian · giờ Việt Nam</dt><dd><?php if ($eventStart): ?><time datetime="<?= e($eventStart->format('c')) ?>"><?= e($eventStart->format('H:i · d/m/Y')) ?></time><?php else: ?>Lịch sẽ được cập nhật.<?php endif; ?><?php if ($eventEnd): ?><span class="event-card-end">Đến <?= e($eventEnd->format('H:i · d/m/Y')) ?></span><?php endif; ?></dd></div>
         <div><dt>Địa điểm</dt><dd><?= e(($event['venue'] ?? '') ?: 'Đang cập nhật') ?><?php if (!empty($event['address'])): ?><span class="event-card-address"><?= e($event['address']) ?></span><?php endif; ?></dd></div>
       </dl>
+      <div class="event-card-registration"><?php render_registration_button($event); ?></div>
     </article>
   <?php endforeach; ?>
   </div>
@@ -137,6 +141,27 @@ function render_event_list(array $events, ?array $project): void { ?>
 
 <?php
 }
+
+function render_registration_button(array $event): void {
+    $url=event_registration_url($event);
+    if($url){ ?>
+<a class="button" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e('Đăng ký '.$event['title'].' (mở tab mới)') ?>">Đăng ký sự kiện <span aria-hidden="true">↗</span></a>
+<?php } else { ?><p class="registration-status"><?= event_registration_closed($event)?'Sự kiện đã kết thúc.':'Đăng ký sự kiện sẽ được cập nhật.' ?></p><?php }
+}
+function render_event_registration(array $events): void { ?>
+<div class="registration-events">
+<?php if(!$events): ?><p class="registration-empty">Chưa có sự kiện mở đăng ký. Bạn vui lòng quay lại sau.</p><?php endif; ?>
+<?php foreach($events as $event): ?>
+<article class="registration-event">
+<h3><?= e($event['title']) ?></h3>
+<?php if(!empty($event['subtitle'])): ?><p><?= e($event['subtitle']) ?></p><?php endif; ?>
+<?php if(!empty($event['starts_at'])): ?><p class="registration-event-meta">Thời gian: <?= e(project_start($event)->format('H:i · d/m/Y')) ?></p><?php endif; ?>
+<?php if(!empty($event['venue'])): ?><p class="registration-event-meta">Địa điểm: <?= e($event['venue']) ?></p><?php endif; ?>
+<?php render_registration_button($event); ?>
+</article>
+<?php endforeach; ?>
+</div>
+<?php }
 
 function render_story(array $storyIntros, array $storySections, array $storyPosts): void { ?>
 <?php
@@ -250,3 +275,64 @@ function render_intro_list(array $introRows, bool $introFormVisible, array $stor
 
 <?php
 }
+
+function admin_ui_icon(string $name): string {
+    $paths=[
+        'dashboard'=>'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+        'projects'=>'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18M8 16h3"/>',
+        'stories'=>'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',
+        'gallery'=>'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/>',
+        'gallery_groups'=>'<path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+        'contacts'=>'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/>',
+        'users'=>'<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/>',
+        'menu'=>'<path d="M4 6h16M4 12h16M4 18h16"/>',
+        'search'=>'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+        'logout'=>'<path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4M14 8l5 4-5 4M8 12h11"/>'
+    ];
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'.($paths[$name]??$paths['dashboard']).'</svg>';
+}
+function admin_page_head(string $title,string $active): void {
+    $user=current_user();$tabs=admin_tabs();$name=$user['display_name']??'Quản trị'; ?>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title><?= e($title) ?> — Xoè 2026</title><link rel="stylesheet" href="<?= asset_url('assets/style.css') ?>"><link rel="stylesheet" href="<?= asset_url('assets/admin-dashboard.css') ?>"></head>
+<body class="xoe-admin"><a class="admin-skip" href="#admin-content">Đến nội dung chính</a>
+<div class="admin-app">
+<aside class="admin-sidebar" id="admin-sidebar" aria-label="Menu quản trị">
+<a class="admin-sidebar-brand" href="index.php"><img src="<?= asset_url('assets/xoe-logo.webp') ?>" alt="Logo Xoè 2026"><span>KHÔNG GIAN QUẢN TRỊ</span></a>
+<p class="admin-menu-label">QUẢN LÝ WEBSITE</p>
+<nav class="admin-sidebar-nav" aria-label="Quản trị">
+<?php foreach($tabs as $key=>$label): ?><a href="<?= e(admin_tab_url($key)) ?>"<?= $active===$key?' aria-current="page"':'' ?>><?= admin_ui_icon($key) ?><span><?= e($label) ?></span><?php if($active===$key): ?><span class="admin-active-dot" aria-hidden="true"></span><?php endif; ?></a><?php endforeach; ?>
+</nav>
+<div class="admin-sidebar-bottom"><a href="../index.php" target="_blank" rel="noopener noreferrer">Xem website <span aria-hidden="true">↗</span></a><form action="logout.php" method="post"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><button type="submit"><?= admin_ui_icon('logout') ?><span>Đăng xuất</span></button></form><small>Xoè 2026 · Nếp xưa, gió lành</small></div>
+</aside>
+<button class="admin-overlay" data-admin-close aria-label="Đóng menu" hidden></button>
+<div class="admin-workspace">
+<header class="admin-topbar">
+<button class="admin-menu-toggle" type="button" data-admin-toggle aria-controls="admin-sidebar" aria-expanded="true" aria-label="Ẩn hoặc hiện menu"><?= admin_ui_icon('menu') ?></button>
+<div class="admin-search-wrap"><?= admin_ui_icon('search') ?><input type="search" data-admin-search placeholder="Tìm mục quản trị…" aria-label="Tìm mục quản trị" autocomplete="off"><div class="admin-search-results" data-admin-search-results hidden></div></div>
+<a class="admin-site-link" href="../index.php" target="_blank" rel="noopener noreferrer">Xem website ↗</a>
+<div class="admin-profile"><span class="admin-avatar"><?= e(mb_strtoupper(mb_substr($name,0,1))) ?></span><span><strong><?= e($name) ?></strong><small><?= ($user['role']??'')==='admin'?'Quản trị viên':'Biên tập viên' ?></small></span></div>
+</header>
+<main class="admin-page" id="admin-content"><div class="admin-page-heading"><div><p class="admin-breadcrumb">Xoè 2026 <span>/</span> <?= e($title) ?></p><h1><?= e($title) ?></h1></div><span class="admin-date"><?= e(date('d/m/Y')) ?></span></div>
+<?php }
+function admin_page_foot(): void { ?>
+</main></div></div><script src="<?= asset_url('assets/app.js') ?>" defer></script><script src="<?= asset_url('assets/admin.js') ?>" defer></script>
+<?php }
+function render_admin_dashboard(array $stats): void {
+    $published=(int)db()->query('SELECT COUNT(*) FROM posts WHERE published=1')->fetchColumn();
+    $posts=$stats['stories']??0;$percent=$posts?(int)round($published/$posts*100):0;
+    $recent=query_all('SELECT id,title,published,created_at FROM posts ORDER BY created_at DESC,id DESC LIMIT 5');
+    $monthly=query_all("SELECT DATE_FORMAT(created_at,'%Y-%m') month,COUNT(*) total FROM posts WHERE created_at>=DATE_SUB(CURDATE(),INTERVAL 6 MONTH) GROUP BY month");
+    $monthly=array_column($monthly,'total','month');$months=[];
+    $first=(new DateTimeImmutable('first day of this month'))->modify('-5 months');
+    for($i=0;$i<6;$i++){$month=$first->modify('+'.$i.' months');$months[]=['label'=>$month->format('m/Y'),'count'=>(int)($monthly[$month->format('Y-m')]??0)];}
+    $max=max(1,...array_column($months,'count')); ?>
+<section class="admin-welcome"><div><p class="admin-eyebrow">NẾP XƯA · GIÓ LÀNH</p><h2>Chào bạn, hôm nay mình kể câu chuyện gì?</h2><p>Quản lý sự kiện, nội dung và hình ảnh của Xoè 2026 trong một không gian.</p></div><a class="button" href="events.php#event-form">+ Thêm sự kiện</a></section>
+<div class="admin-metrics">
+<?php foreach(['projects'=>'Sự kiện','stories'=>'Bài viết','gallery'=>'Ảnh dự án','contacts'=>'Liên hệ'] as $key=>$label): ?><a class="admin-metric" href="<?= e(admin_tab_url($key)) ?>"><span class="admin-metric-icon"><?= admin_ui_icon($key) ?></span><span class="admin-metric-label"><?= $label ?></span><strong><?= (int)($stats[$key]??0) ?></strong><span class="admin-metric-link">Quản lý <span aria-hidden="true">↗</span></span></a><?php endforeach; ?>
+</div>
+<div class="admin-dashboard-grid">
+<section class="admin-card admin-chart-card"><div class="admin-card-heading"><div><h2>Bài viết theo tháng</h2><p>Số bài viết được tạo trong 6 tháng gần nhất</p></div><span class="admin-badge">Nội dung</span></div><div class="admin-bars" role="img" aria-label="<?= e(implode('; ',array_map(fn($m)=>$m['label'].': '.$m['count'].' bài',$months))) ?>"><?php foreach($months as $month): ?><div class="admin-bar-column"><strong><?= $month['count'] ?></strong><span class="admin-bar-track"><span style="height:<?= $month['count']?max(4,round($month['count']/$max*100)):0 ?>%"></span></span><small><?= $month['label'] ?></small></div><?php endforeach; ?></div></section>
+<section class="admin-card admin-publication-card"><div class="admin-card-heading"><div><h2>Nội dung đã xuất bản</h2><p>Tiến độ xuất bản bài viết</p></div></div><div class="admin-progress-ring" style="--progress:<?= $percent ?>%"><div><strong><?= $percent ?>%</strong><span>đã xuất bản</span></div></div><div class="admin-publication-counts"><span><strong><?= $published ?></strong>Đã xuất bản</span><span><strong><?= max(0,$posts-$published) ?></strong>Bản nháp</span></div></section>
+</div>
+<section class="admin-card"><div class="admin-card-heading"><div><h2>Bài viết gần đây</h2><p>Tiếp tục biên tập những câu chuyện của dự án</p></div><a class="admin-text-link" href="stories.php">Xem tất cả ↗</a></div><div class="table-wrap"><table><thead><tr><th>Bài viết</th><th>Trạng thái</th><th>Ngày tạo</th><th></th></tr></thead><tbody><?php if(!$recent): ?><tr><td colspan="4">Chưa có bài viết. <a href="stories.php?mode=edit">Viết bài đầu tiên ↗</a></td></tr><?php endif; ?><?php foreach($recent as $post): ?><tr><td><strong><?= e($post['title']) ?></strong></td><td><span class="admin-badge<?= !$post['published']?' is-muted':'' ?>"><?= $post['published']?'Đã xuất bản':'Bản nháp' ?></span></td><td><?= e(date('d/m/Y',strtotime($post['created_at']))) ?></td><td><a class="admin-text-link" href="stories.php?mode=edit&amp;edit=<?= (int)$post['id'] ?>">Sửa ↗</a></td></tr><?php endforeach; ?></tbody></table></div></section>
+<?php }

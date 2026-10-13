@@ -30,7 +30,13 @@ try {
     if (current_user()) redirect('index.php');
 } catch (PDOException $ex) { $databaseError=login_database_error($ex); }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    check_csrf();
+    if(!csrf_valid()){
+        $username=$_POST['username']??'';
+        $_SESSION['login_username']=is_string($username)?mb_substr($username,0,100):'';
+        unset($_SESSION['csrf']);
+        flash('Phiên đăng nhập đã hết hạn hoặc vừa thay đổi. Vui lòng nhập lại mật khẩu để đăng nhập.','error');
+        redirect('login.php');
+    }
     $now = time();
     if (($now - ($_SESSION['login_window'] ?? 0)) > 900) { $_SESSION['login_window'] = $now; $_SESSION['login_attempts'] = 0; }
     if (($_SESSION['login_attempts'] ?? 0) >= 5) flash('Vui lòng thử lại sau 15 phút.', 'error');
@@ -47,5 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     redirect('login.php');
 }
+$loginUsername=$_SESSION['login_username']??'';unset($_SESSION['login_username']);
 ?>
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Đăng nhập quản trị — Xoè 2026</title><link rel="stylesheet" href="<?= asset_url('assets/style.css') ?>"></head><body><main class="login"><a class="brand" href="../index.php"><img class="admin-brand" src="../assets/xoe-logo.webp" alt="Xòe"></a><h1>Quản trị<br><em>dự án.</em></h1><?php if($databaseError!==''){ echo '<p class="notice error" role="alert">'.e($databaseError).'</p>'; unset($_SESSION['flash']); } else notice(); ?><form method="post"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><label>Tên đăng nhập<input name="username" required autocomplete="username" maxlength="100"></label><label>Mật khẩu<input type="password" name="password" required autocomplete="current-password" maxlength="1024"></label><button class="button" type="submit">Đăng nhập ↗</button></form><p style="margin-top:25px"><a href="../index.php">← Về website</a></p></main></body></html>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Đăng nhập quản trị — Xoè 2026</title><link rel="stylesheet" href="<?= asset_url('assets/style.css') ?>"></head><body><main class="login"><a class="brand" href="../index.php"><img class="admin-brand" src="../assets/xoe-logo.webp" alt="Xòe"></a><h1>Quản trị<br><em>dự án.</em></h1><?php if($databaseError!==''){ echo '<p class="notice error" role="alert">'.e($databaseError).'</p>'; unset($_SESSION['flash']); } else notice(); ?><form method="post"><input type="hidden" name="csrf" value="<?= e(csrf()) ?>"><label>Tên đăng nhập<input name="username" required autocomplete="username" maxlength="100" value="<?= e($loginUsername) ?>"></label><label>Mật khẩu<input type="password" name="password" required autocomplete="current-password" maxlength="1024"></label><button class="button" type="submit">Đăng nhập ↗</button></form><p style="margin-top:25px"><a href="../index.php">← Về website</a></p></main></body></html>

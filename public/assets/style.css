@@ -270,3 +270,16 @@ main img:not([aria-hidden="true"]),dialog img{border-radius:var(--photo-radius)}
 .hero .hero-hills-left{left:-42px;transform:scaleX(-1)}
 .hero .hero-hills-right{right:-42px}
 @media(max-width:800px){.hero .hero-hills{width:42%;max-width:220px;bottom:-14px;opacity:.2}.hero .hero-hills-left{left:-26px}.hero .hero-hills-right{right:-26px}}
+.hero .fan-art[src*="hero-quat-8065"]{object-position:50% 78%}
+
+/* Event registration through a separate Google Form for each event. */
+.registration-events{display:grid;gap:18px;margin-top:24px}
+.registration-event{min-width:0;padding:22px;border:1px solid #edc66d55;border-radius:12px;background:#ffffff06}
+.registration-event h3{font-family:'Playfair Display',Georgia,serif;font-size:26px;line-height:1.35;overflow-wrap:anywhere;margin-bottom:14px}
+.registration-event p{font-size:13px;line-height:1.8;margin-top:8px}
+.registration-event .button{width:100%;margin-top:18px;gap:14px}
+.registration-event-meta{color:#f3dfbc}
+.registration-status{font-size:12px;line-height:1.7}
+.event-card-registration{grid-column:2/-1}.event-card-registration .button{font-size:12px;padding:12px 18px}
+.event-strip-register{margin-top:18px;font-size:12px;padding:12px 18px}
+@media(max-width:800px){.event-card-registration{grid-column:1/-1}.registration-event{padding:18px}.registration-event h3{font-size:23px}}

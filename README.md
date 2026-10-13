@@ -142,3 +142,18 @@ Thêm `--baseline` nếu muốn đối chiếu ảnh, cấu hình và database v
 Giữ `.local/project-before-consolidation.zip` và `.local/history.zip` trong vùng riêng. Archive mã nguồn chứa cả cấu hình cục bộ và SQL database trong `backup/`, không đưa lên vùng public hoặc chia sẻ công khai. Có thể giải nén archive sang thư mục khác để đối chiếu hoặc khôi phục. Chỉ nhập SQL sao lưu khi chủ động muốn thay database bằng bản trước khi gộp; file SQL này là bản khôi phục, không phải migration. `history.zip` giữ các file/công cụ thử cũ; website không cần giải nén nó để chạy.
 
 Đổi tên nội dung (12/10/2026): sau khi cập nhật mã nguồn trên database hiện có, chạy `php app/rename-brand.php` để đổi tên dự án thành Xoè 2026 và sự kiện thành Xoè nếp xưa, đón gió lành. Lệnh chỉ thay các cụm tên cũ, có thể chạy lại.
+
+## Google Form cho từng sự kiện
+
+Database hiện có: import `database/event-google-forms.sql` trong phpMyAdmin sau khi chọn database website, hoặc chạy `php app/migrate-event-forms.php`. Lệnh có thể chạy lại và giữ nội dung hiện có.
+
+Quản trị > Sự kiện > Sửa: nhập “Link Google Form đăng ký” bằng link dành cho người trả lời (`forms.gle` hoặc `docs.google.com/forms/.../viewform`), rồi Lưu sự kiện. Các sự kiện đã xuất bản xuất hiện ở phần Đăng ký trên trang chủ; link mở trong tab mới. Chưa có link thì hiển thị chờ cập nhật. Qua giờ kết thúc thì đóng nút đăng ký. Phản hồi được tiếp nhận trong Google Form của ban tổ chức.
+
+## Đồng nhất đăng ký sự kiện và liên hệ
+
+Trang chủ dùng “Đăng ký sự kiện” cho các link Google Form. Quản trị “Sự kiện & đăng ký” dùng để thêm sự kiện và chỉnh form; “Liên hệ” dùng để xem lời nhắn website. Dữ liệu biểu mẫu cũ được xem ở “Liên hệ trước đây”, không tạo mục Đăng ký riêng. Các phản hồi đăng ký sự kiện mới được quản lý trong Google Forms. Không cần thay đổi database cho cập nhật nhãn và điều hướng này.
+
+## Giao diện quản trị và nhóm ảnh
+
+Quản trị dùng sidebar có logo, thanh tìm nhanh, dashboard và giao diện đỏ–vàng. Số liệu và biểu đồ lấy từ dữ liệu bài viết thực tế.
+Database hiện có: import `database/gallery-groups.sql` hoặc chạy `php app/migrate-gallery-groups.php`. Mục “Nhóm ảnh” cho phép thêm, đổi tên và xóa nhóm. Khi xóa nhóm có ảnh, chọn nhóm nhận ảnh; các ảnh được chuyển và giữ nguyên. Đổi tên nhóm cập nhật các ảnh cùng nhóm. Bộ lọc trang chủ lấy các nhóm đang có ảnh.
