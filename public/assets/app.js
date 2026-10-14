@@ -235,3 +235,9 @@ document.querySelectorAll('[data-rich-editor]').forEach(container => {
   });
   sync();
 });
+
+// Mỗi lần mở một kênh liên hệ để giữ phần thông tin gọn gàng.
+const contactChannels = [...document.querySelectorAll('.contact-channel')];
+contactChannels.forEach(channel => channel.addEventListener('toggle', () => {
+  if (channel.open) contactChannels.forEach(other => { if (other !== channel) other.open = false; });
+}));

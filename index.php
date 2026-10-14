@@ -67,15 +67,15 @@ if ($start && $project && !empty($project['ends_at']) && !empty($project['venue'
 
 <section class="contact section" id="lien-he"><div><p class="eyebrow">04 / LIÊN HỆ</p><h2>Một lời nhắn.<br><em>Một kết nối.</em></h2><div class="contact-channels" aria-label="Các kênh liên hệ">
   <details class="contact-channel">
-    <summary><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M14 22v-9h3l.5-4H14V6.5c0-1.2.3-2 2-2h2V1.2A25 25 0 0 0 15 1c-3 0-5 1.8-5 5v3H7v4h3v9z"/></svg><span>Facebook</span></summary>
+    <summary aria-label="Facebook" title="Facebook"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M14 22v-9h3l.5-4H14V6.5c0-1.2.3-2 2-2h2V1.2A25 25 0 0 0 15 1c-3 0-5 1.8-5 5v3H7v4h3v9z"/></svg></span></summary>
     <div class="contact-channel-info"><p>Xoè 2026</p><a href="https://www.facebook.com/profile.php?id=61595526921994" target="_blank" rel="noopener noreferrer">Mở trang Facebook ↗</a></div>
   </details>
   <details class="contact-channel">
-    <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></summary>
+    <summary aria-label="Instagram" title="Instagram"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span></summary>
     <div class="contact-channel-info"><p>@_xoe2026</p><a href="https://www.instagram.com/_xoe2026/" target="_blank" rel="noopener noreferrer">Mở Instagram ↗</a></div>
   </details>
   <details class="contact-channel">
-    <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m3 6 9 7 9-7"/></svg><span>Email</span></summary>
+    <summary aria-label="Email" title="Email"><span class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m3 6 9 7 9-7"/></svg></span></summary>
     <div class="contact-channel-info"><p>xoe2026@gmail.com</p><a href="mailto:xoe2026@gmail.com">Gửi email ↗</a></div>
   </details>
 </div>
