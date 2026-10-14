@@ -44,7 +44,7 @@ function site_footer(bool $home = false): void {
     $contact = e($home ? '#lien-he' : site_path('index.php') . '#lien-he');
     ?>
 <footer><a class="brand" href="<?= e(site_path('index.php')) ?>"><img class="footer-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" alt="Xòe — Xoè 2026" loading="lazy"></a><p>Xòe nếp xưa, đón gió lành</p>
-<div class="footer-links" role="navigation" aria-label="Liên kết chân trang"><a href="<?= e(site_path('faq.php')) ?>">FAQ</a><a href="<?= e(site_path('partners.php')) ?>">Đơn vị đồng hành</a><a href="<?= $contact ?>">Liên hệ</a><a href="<?= e(site_path('admin/login.php')) ?>">Quản trị ↗</a><a href="#top">Về đầu trang ↑</a></div></footer>
+<div class="footer-links" role="navigation" aria-label="Liên kết chân trang"><a href="<?= e(site_path('partners.php')) ?>">Đơn vị đồng hành</a><a href="<?= $contact ?>">Liên hệ</a><a href="<?= e(site_path('admin/login.php')) ?>">Quản trị ↗</a><a href="#top">Về đầu trang ↑</a></div></footer>
 <?php
 }
 
@@ -76,6 +76,17 @@ function json_ld(array $data): void {
     echo '<script type="application/ld+json">'.json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).'</script>';
 }
 function seo(string $title, string $description, string $path, string $image='assets/chang-son-fans.webp', string $type='website'): void {
+    // Shared by the public pages so Analytics is installed once per page.
+    echo <<<'HTML'
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DCS48VY4BS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DCS48VY4BS');
+</script>
+HTML;
     echo '<title>'.e($title).'</title><meta name="description" content="'.e($description).'">';
     echo '<link rel="canonical" href="'.e(site_url($path)).'">';
     foreach (['og:locale'=>'vi_VN','og:site_name'=>'Xoè 2026','og:type'=>$type,'og:title'=>$title,'og:description'=>$description,'og:url'=>site_url($path),'og:image'=>site_url($image),'og:image:alt'=>$title] as $key=>$value) echo '<meta property="'.e($key).'" content="'.e($value).'">';
