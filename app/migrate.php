@@ -27,6 +27,8 @@ db()->exec('ALTER TABLE projects MODIFY starts_at DATETIME NULL');
 $columns=array_column(query_all('SHOW COLUMNS FROM posts'),'Field');
 if (!in_array('body_format',$columns,true)) db()->exec("ALTER TABLE posts ADD COLUMN body_format VARCHAR(10) NOT NULL DEFAULT 'plain'");
 if (!in_array('show_on_home',$columns,true)) db()->exec('ALTER TABLE posts ADD COLUMN show_on_home TINYINT(1) NOT NULL DEFAULT 0');
+$columns=array_column(query_all('SHOW COLUMNS FROM story_sections'),'Field');
+if (!in_array('body_format',$columns,true)) db()->exec("ALTER TABLE story_sections ADD COLUMN body_format VARCHAR(10) NOT NULL DEFAULT 'plain'");
 $pdo=db(); $pdo->beginTransaction();
 try {
     $name='admin-upgrade-20261012';

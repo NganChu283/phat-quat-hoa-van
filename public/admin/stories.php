@@ -3,8 +3,9 @@ require __DIR__.'/../../app/bootstrap.php';
 admin_required();
 $mode=in_array($_GET['mode'] ?? '',['articles','intro','sections','edit'],true)?$_GET['mode']:'articles'; $articles=[]; $articleTotal=0; $articlePage=max(1,min(100000,(int)($_GET['page'] ?? 1))); $articleOffset=($articlePage-1)*25; $edit=null; $ready=true; $rows=[]; $story=default_story_settings(); $introRows=[]; $introFormVisible=false;
 if ($_SERVER['REQUEST_METHOD']==='POST') {
-    check_csrf(); $entity=field('entity',20); $mode=$entity==='section'?'sections':($entity==='article'?((($_POST['action'] ?? '')==='save')?'edit':'articles'):'intro');
+    check_csrf();
     try {
+        $entity=field('entity',20); $mode=$entity==='section'?'sections':($entity==='article'?((($_POST['action'] ?? '')==='save')?'edit':'articles'):'intro');
         if ($entity==='article') {
             $id=filter_var($_POST['id'] ?? 0,FILTER_VALIDATE_INT);
             if ($id===false || $id<0) throw new InvalidArgumentException('Mã bài viết không hợp lệ.');
@@ -37,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
             $id=filter_var($_POST['id'] ?? 0,FILTER_VALIDATE_INT);
             if ($id===false || $id<0) throw new InvalidArgumentException('Mã nội dung không hợp lệ.');
             $action=field('action',20);
-            if ($action==='delete' && $id>0) { $q=db()->prepare('DELETE FROM story_sections WHERE id=?'); $q->execute([$id]); flash('Đã xóa mục câu chuyện.'); }
+            if ($action==='delete' && $id>0) { $q=db()->prepare('DELETE FROM story_sections WHERE id=?'); $q->execute([$id]); if (!$q->rowCount()) throw new InvalidArgumentException('Mục câu chuyện không còn tồn tại.'); flash('Đã xóa mục câu chuyện.'); }
             elseif ($action==='save') {
-                $title=field('title',180); $body=field('body',60000); $format=field('body_format',10) ?: 'plain';
+                $body=editor_body(); $title=field('title',180); $format=field('body_format',10) ?: 'plain';
                 if (!in_array($format,['plain','html'],true)) throw new InvalidArgumentException('Định dạng không hợp lệ.');
                 if ($format==='html') $body=sanitize_rich_text($body);
                 if ($title==='' || !rich_text_has_content($body)) throw new InvalidArgumentException('Nhập tiêu đề và nội dung câu chuyện.');
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
         unset($_SESSION['story_draft']);
     } catch (Throwable $ex) {
         if ($ex instanceof InvalidArgumentException) flash($ex->getMessage(),'error');
-        else { error_log('Story error: '.$ex->getCode()); flash('Chưa thể lưu câu chuyện. Kiểm tra database và quyền ghi ảnh.','error'); }
+        else { $errorId=report_error($ex,'Story save'); flash('Chưa thể lưu câu chuyện. Kiểm tra cập nhật database và cấu hình PHP. Mã lỗi: '.$errorId,'error'); }
         if (($_POST['action'] ?? '')!=='delete') $_SESSION['story_draft']=array_filter($_POST,fn($v)=>is_string($v));
     }
     redirect('stories.php?mode='.$mode);

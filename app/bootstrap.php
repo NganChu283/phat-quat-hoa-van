@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/errors.php';
 // Apache rewrites root URLs to public/*.php. Use the browser-facing path in links.
 if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server') {
     $requestedPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';

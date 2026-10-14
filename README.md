@@ -157,3 +157,18 @@ Trang chủ dùng “Đăng ký sự kiện” cho các link Google Form. Quản
 
 Quản trị dùng sidebar có logo, thanh tìm nhanh, dashboard và giao diện đỏ–vàng. Số liệu và biểu đồ lấy từ dữ liệu bài viết thực tế.
 Database hiện có: import `database/gallery-groups.sql` hoặc chạy `php app/migrate-gallery-groups.php`. Mục “Nhóm ảnh” cho phép thêm, đổi tên và xóa nhóm. Khi xóa nhóm có ảnh, chọn nhóm nhận ảnh; các ảnh được chuyển và giữ nguyên. Đổi tên nhóm cập nhật các ảnh cùng nhóm. Bộ lọc trang chủ lấy các nhóm đang có ảnh.
+
+## Sửa lưu nội dung mở rộng và kiểm tra đồng bộ (14/10/2026)
+
+Bản cập nhật xử lý lỗi ngoài khối lưu, giữ nội dung nhập lại khi lưu thất bại, và có mã lỗi thay cho màn hình trắng. Nội dung định dạng từ trình soạn thảo được truyền bằng Base64 UTF-8 rồi giải mã, kiểm tra độ dài và lọc HTML trên server; không thay đổi quyền/CSRF hoặc cho phép HTML không an toàn. Bản không bật JavaScript vẫn gửi văn bản bình thường.
+
+Đã sửa migration bổ sung `story_sections.body_format`, lỗi ảnh mẫu tự xuất hiện khi xóa hết thư viện và giới hạn sáu bài trên trang chủ. Bài đã xuất bản và chọn hiển thị sẽ xuất hiện; các mục ẩn/xóa không hiển thị lại. Thao tác sửa ảnh đã xóa báo lỗi thay vì thông báo thành công giả.
+
+### Cập nhật hosting đang dùng
+
+1. Giải nén `xoe2026-fix-20261014.zip`, tải các file lên đúng đường dẫn tương ứng trong thư mục website. Archive không chứa cấu hình/mật khẩu hay dữ liệu database. Giữ `app/config.local.php` và ảnh tải lên hiện tại.
+2. Mở `/admin/health.php` bằng tài khoản quản trị, hoặc bấm **Kiểm tra hệ thống** trên đầu trang quản trị. Trang kiểm tra PHP DOM/XML, mbstring, PDO MySQL, fileinfo, các cột cần thiết và quyền ghi ảnh.
+3. Chọn database website trong phpMyAdmin và nhập `database/story-upgrade.sql` nếu thiếu cột `story_sections.body_format`. File này chỉ bổ sung cột, giữ dữ liệu, chạy lại được. Nếu hosting hỗ trợ CLI, có thể chạy `php app/migrate.php` để cập nhật đầy đủ cấu trúc.
+4. Tải lại trang quản trị, mở Câu chuyện > Nội dung mở rộng > Lưu nội dung, sau đó mở trang chủ để đối chiếu. Nếu vẫn lỗi, gửi mã lỗi và dòng cùng mã từ PHP error log trên hosting hoặc `.local/php-errors.log` (vùng riêng bị chặn truy cập web).
+
+Máy chủ hosting không trả lời khi truy cập từ môi trường kiểm thử, nên chưa xác nhận nguyên nhân trực tiếp của phiên bị trắng trên hosting hoặc việc upload lên hosting. Bộ kiểm thử chạy trên bản sao với PHP 8.0.28/MariaDB 10.4.28, cổng riêng 8091/3307, không thay đổi database của người dùng. Đã kiểm tra các luồng HTTP và database, cú pháp PHP/JS, truyền tiếng Việt/emoji, sanitization, lịch ICS và 7 bài được chọn hiển thị. Chưa kiểm tra thao tác trực quan Safari/Chrome, phản hồi trong Google Forms hay SMTP tới hộp thư thật ở lần kiểm thử này.

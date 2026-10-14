@@ -283,3 +283,15 @@ main img:not([aria-hidden="true"]),dialog img{border-radius:var(--photo-radius)}
 .event-card-registration{grid-column:2/-1}.event-card-registration .button{font-size:12px;padding:12px 18px}
 .event-strip-register{margin-top:18px;font-size:12px;padding:12px 18px}
 @media(max-width:800px){.event-card-registration{grid-column:1/-1}.registration-event{padding:18px}.registration-event h3{font-size:23px}}
+
+/* Biểu tượng liên hệ: bấm để mở thông tin, bấm lại để thu gọn. */
+.contact-channels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:32px;align-items:start}
+.contact-channel{min-width:0;border:1px solid var(--line);border-radius:12px;background:#fff7e4;overflow:hidden}
+.contact-channel summary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px 12px;min-height:96px;color:var(--red);cursor:pointer;font-size:12px;list-style:none}
+.contact-channel summary::marker{content:''}.contact-channel summary::-webkit-details-marker{display:none}
+.contact-channel summary svg{width:28px;height:28px;flex-shrink:0}
+.contact-channel summary:hover,.contact-channel[open] summary{background:var(--red);color:var(--gold)}
+.contact-channel summary:focus-visible{outline:3px solid var(--rust);outline-offset:-4px}
+.contact-channel-info{padding:15px 12px;border-top:1px solid var(--line);font-size:12px;overflow-wrap:anywhere;text-align:center}
+.contact-channel-info p{margin:0 0 10px}.contact-channel-info a{color:var(--red);text-decoration:underline;text-underline-offset:3px;font-weight:600;display:inline-block;padding:5px 0}
+@media(max-width:450px){.contact-channels{grid-template-columns:1fr;gap:10px}.contact-channel summary{flex-direction:row;justify-content:flex-start;min-height:64px;padding:14px 18px;gap:14px}.contact-channel-info{text-align:left;padding:15px 18px}}

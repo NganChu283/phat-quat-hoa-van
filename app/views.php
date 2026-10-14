@@ -43,7 +43,7 @@ function site_header(bool $home = false): void {
 function site_footer(bool $home = false): void {
     $contact = e($home ? '#lien-he' : site_path('index.php') . '#lien-he');
     ?>
-<footer><a class="brand" href="<?= e(site_path('index.php')) ?>"><img class="footer-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" alt="Xòe — Xoè 2026" loading="lazy"></a><p>Giữ trọn ký ức trong từng nan quạt.</p>
+<footer><a class="brand" href="<?= e(site_path('index.php')) ?>"><img class="footer-logo" src="<?= asset_url('assets/xoe-logo.webp') ?>" width="1536" height="1024" alt="Xòe — Xoè 2026" loading="lazy"></a><p>Xòe nếp xưa, đón gió lành</p>
 <div class="footer-links" role="navigation" aria-label="Liên kết chân trang"><a href="<?= e(site_path('faq.php')) ?>">FAQ</a><a href="<?= e(site_path('partners.php')) ?>">Đơn vị đồng hành</a><a href="<?= $contact ?>">Liên hệ</a><a href="<?= e(site_path('admin/login.php')) ?>">Quản trị ↗</a><a href="#top">Về đầu trang ↑</a></div></footer>
 <?php
 }
@@ -312,7 +312,7 @@ function admin_page_head(string $title,string $active): void {
 <a class="admin-site-link" href="../index.php" target="_blank" rel="noopener noreferrer">Xem website ↗</a>
 <div class="admin-profile"><span class="admin-avatar"><?= e(mb_strtoupper(mb_substr($name,0,1))) ?></span><span><strong><?= e($name) ?></strong><small><?= ($user['role']??'')==='admin'?'Quản trị viên':'Biên tập viên' ?></small></span></div>
 </header>
-<main class="admin-page" id="admin-content"><div class="admin-page-heading"><div><p class="admin-breadcrumb">Xoè 2026 <span>/</span> <?= e($title) ?></p><h1><?= e($title) ?></h1></div><span class="admin-date"><?= e(date('d/m/Y')) ?></span></div>
+<main class="admin-page" id="admin-content"><div class="admin-page-heading"><div><p class="admin-breadcrumb">Xoè 2026 <span>/</span> <?= e($title) ?></p><h1><?= e($title) ?></h1></div><div><span class="admin-date"><?= e(date('d/m/Y')) ?></span><?php if ((current_user()['role'] ?? '')==='admin'): ?><br><a class="admin-text-link" href="health.php">Kiểm tra hệ thống ↗</a><?php endif; ?></div></div>
 <?php }
 function admin_page_foot(): void { ?>
 </main></div></div><script src="<?= asset_url('assets/app.js') ?>" defer></script><script src="<?= asset_url('assets/admin.js') ?>" defer></script>

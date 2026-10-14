@@ -49,6 +49,15 @@ function default_story_sections(): array {
 }
 
 // rich-text.php
+function editor_body(int $max=60000): string {
+    if (($_POST['body_transport'] ?? '') !== 'base64') return field('body',$max);
+    $encoded=field('body_payload',$max*6);
+    $body=base64_decode($encoded,true);
+    if ($body===false || preg_match('//u',$body)!==1 || mb_strlen($body)>$max) throw new InvalidArgumentException('Nội dung truyền lên không hợp lệ hoặc vượt quá độ dài cho phép.');
+    // Keep decoded input for redisplaying the draft if another field fails validation.
+    $_POST['body']=trim($body); unset($_POST['body_payload'],$_POST['body_transport']);
+    return $_POST['body'];
+}
 function rich_text_styles(DOMElement $node): string {
     $styles=[];
     $fonts=['arial'=>'Arial','georgia'=>'Georgia','times new roman'=>'Times New Roman','verdana'=>'Verdana'];
@@ -79,6 +88,7 @@ function rich_text_styles(DOMElement $node): string {
 }
 function sanitize_rich_text(string $html): string {
     if(trim($html)==='')return '';
+    if (!class_exists('DOMDocument')) throw new InvalidArgumentException('Hosting chưa bật extension PHP DOM/XML. Hãy bật extension này để lưu nội dung có định dạng.');
     $dom=new DOMDocument('1.0','UTF-8');$prior=libxml_use_internal_errors(true);
     try{$dom->loadHTML('<?xml encoding="UTF-8"><body>'.$html.'</body>',LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING);}
     finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
@@ -123,13 +133,16 @@ function rich_text_has_content(string $html): bool {
 }
 
 function post_body(array $post): string {
-    if (($post['body_format'] ?? 'plain')==='html') return sanitize_rich_text($post['body']);
+    if (($post['body_format'] ?? 'plain')==='html') {
+        if (!class_exists('DOMDocument')) return '<p>'.nl2br(e(html_entity_decode(strip_tags($post['body']),ENT_QUOTES|ENT_HTML5,'UTF-8'))).'</p>';
+        return sanitize_rich_text($post['body']);
+    }
     return '<p>'.nl2br(e($post['body'])).'</p>';
 }
 
 // articles.php
 function save_article(int $id): int {
-    $title=field('title',180); $excerpt=field('excerpt',500); $body=field('body',60000); $format=field('body_format',10) ?: 'plain';
+    $body=editor_body(); $title=field('title',180); $excerpt=field('excerpt',500); $format=field('body_format',10) ?: 'plain';
     if (!in_array($format,['plain','html'],true)) throw new InvalidArgumentException('Định dạng bài viết không hợp lệ.');
     if ($format==='html') $body=sanitize_rich_text($body);
     if ($title==='' || $excerpt==='' || !rich_text_has_content($body)) throw new InvalidArgumentException('Nhập tiêu đề, mô tả và nội dung bài viết.');

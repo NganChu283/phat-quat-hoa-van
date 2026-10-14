@@ -66,6 +66,11 @@ document.querySelectorAll('[data-rich-editor]').forEach(container => {
   const picker = container.querySelector('[data-editor-image]');
   const tablePicker = container.querySelector('[data-table-picker]');
   const tableTools = container.querySelector('[data-table-tools]');
+  const bodyTransport = document.createElement('input');
+  bodyTransport.type = 'hidden'; bodyTransport.name = 'body_transport'; bodyTransport.value = 'base64'; bodyTransport.disabled = true;
+  const bodyPayload = document.createElement('input');
+  bodyPayload.type = 'hidden'; bodyPayload.name = 'body_payload'; bodyPayload.disabled = true;
+  form.append(bodyTransport, bodyPayload);
   source.hidden = true; editor.hidden = false; toolbar.hidden = false; format.value = 'html';
   let selection = null, insertionRange = null, uploading = false;
   const selectedCell = () => {
@@ -214,11 +219,19 @@ document.querySelectorAll('[data-rich-editor]').forEach(container => {
     event.preventDefault(); document.execCommand('insertText', false, event.clipboardData.getData('text/plain')); remember(); sync();
   });
   form.addEventListener('submit', event => {
+    source.disabled = false; bodyTransport.disabled = true; bodyPayload.disabled = true;
     sync();
     if (uploading) { event.preventDefault(); status.textContent = 'Chờ tải ảnh xong trước khi lưu.'; }
     else if (!editor.innerText.replace(/\u00a0/g, ' ').trim() && !editor.querySelector('img')) {
       event.preventDefault(); status.textContent = 'Vui lòng nhập nội dung hoặc chèn ảnh.'; editor.focus();
     } else if (source.value.length > 60000) { event.preventDefault(); status.textContent = 'Nội dung vượt quá độ dài cho phép.'; }
+    else {
+      // Transport formatted HTML as UTF-8 data; the server still sanitizes every tag.
+      const bytes = new TextEncoder().encode(source.value);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+      bodyPayload.value = btoa(binary); bodyPayload.disabled = false; bodyTransport.disabled = false; source.disabled = true;
+    }
   });
   sync();
 });

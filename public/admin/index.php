@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($entity === 'posts') {
                 save_article($id);
             } else {
+                if ($id) { $q=db()->prepare('SELECT id FROM gallery WHERE id=?'); $q->execute([$id]); if (!$q->fetch()) throw new InvalidArgumentException('Ảnh không còn tồn tại. Hãy tải lại danh sách ảnh.'); }
                 $category = field('category', 40);
                 if (!in_array($category,array_column(gallery_groups(),'title'),true)) throw new InvalidArgumentException('Nhóm ảnh không hợp lệ.');
                 $image = upload_image(field('image', 255));
